@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,6 +29,7 @@ public class Product {
     private String description;
 
     @ManyToMany
+    @JsonIgnore
     private List<SubCategory> category;
 
     @OneToMany(mappedBy = "product",
