@@ -28,6 +28,9 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "is_active")
+    private boolean isActive;
+
     @ManyToMany
     @JsonIgnore
     private List<SubCategory> category;
