@@ -33,7 +33,7 @@ public class Product {
 
     @ManyToMany
     @JsonIgnore
-    private List<SubCategory> category;
+    private List<SubCategory> subcategory;
 
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,

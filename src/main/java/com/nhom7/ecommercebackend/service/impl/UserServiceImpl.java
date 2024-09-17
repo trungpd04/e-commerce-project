@@ -20,6 +20,7 @@ public class UserServiceImpl implements UserService {
         if(!userDTO.getPhoneNumber().isBlank() && userRepository.existsByPhoneNumber(userDTO.getPhoneNumber())) {
             throw new DataIntegrityViolationException("This phone number has already exist!");
         }
+
         return null;
     }
 }
