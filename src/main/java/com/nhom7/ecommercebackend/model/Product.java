@@ -28,9 +28,12 @@ public class Product {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "is_active")
+    private boolean isActive;
+
     @ManyToMany
     @JsonIgnore
-    private List<SubCategory> category;
+    private List<SubCategory> subcategory;
 
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
