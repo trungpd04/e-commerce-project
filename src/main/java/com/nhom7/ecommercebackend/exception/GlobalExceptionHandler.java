@@ -29,4 +29,19 @@ public class GlobalExceptionHandler {
 
         return error;
     }
+    @ExceptionHandler(DataNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ErrorResponse handleDataNotFoundException(HttpServletRequest request, Exception e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(HttpStatus.NOT_FOUND.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
 }

@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -21,5 +22,6 @@ public class CategoryDTO {
     private String name;
 
     @JsonProperty("sub_categories")
-    private List<SubCategoryDTO> subCategories;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> subCategories;
 }

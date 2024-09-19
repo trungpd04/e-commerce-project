@@ -7,6 +7,7 @@ import com.nhom7.ecommercebackend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ public class ProductController {
 
     @PostMapping
     public ApiResponse createProduct(@RequestBody ProductDTO productDTO) {
-        Product newProduct = productService.saveProduct(toProductEntity(productDTO));
+        Product newProduct = productService.createProduct(productDTO);
         return ApiResponse.builder()
                 .data(toProductDTO(newProduct))
                 .message("Create Product successfully!")
@@ -69,11 +70,18 @@ public class ProductController {
 
     // Converts Product entity to ProductDTO
     private ProductDTO toProductDTO(Product product) {
+        Long categoryId = product.getSubcategory().getFirst().getId();
+        List<Long> subcategoriesId = new ArrayList<>();
+        product.getSubcategory().forEach(subcategory -> {
+            subcategoriesId.add(subcategory.getId());
+        });
         return ProductDTO.builder()
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .thumbnail(product.getThumbnail())
+                .categoryId(categoryId)
+                .subcategories(subcategoriesId)
                 .build();
     }
 

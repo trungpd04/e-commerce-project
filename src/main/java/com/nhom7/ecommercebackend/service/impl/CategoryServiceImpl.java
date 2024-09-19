@@ -2,8 +2,10 @@ package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
+import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
 import com.nhom7.ecommercebackend.request.CategoryDTO;
 import com.nhom7.ecommercebackend.request.SubCategoryDTO;
@@ -20,8 +22,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
+
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
+
     @Override
     @Transactional
     public Category creatCategory(CategoryDTO categoryDTO) throws DataNotFoundException {
@@ -29,17 +33,51 @@ public class CategoryServiceImpl implements CategoryService {
             throw new DataIntegrityViolationException("Category name has already exist!");
         }
         Category newCategory = Category.builder().name(categoryDTO.getName()).build();
-        List<SubCategory> subCategories = new ArrayList<>();
-        categoryDTO.getSubCategories().forEach(subCategoryDTO -> {
-            if(!subCategoryDTO.getName().isBlank() && subCategoryRepository.existsByName(subCategoryDTO.getName())) {
-                throw new DataIntegrityViolationException("Sub category " + subCategoryDTO.getName() + " has already exist!");
-            }
-           SubCategory subCategory = SubCategory.builder().name(subCategoryDTO.getName()).build();
-           subCategory.setCategory(newCategory);
-           subCategories.add(subCategory);
-        });
-        newCategory.setSubCategoryList(subCategories);
+        newCategory.setSubCategoryList(new ArrayList<>());
         categoryRepository.save(newCategory);
         return newCategory;
     }
+
+    @Override
+    @Transactional
+    public void deleteCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
+                 new DataNotFoundException("Category does not exist!"));
+        List<SubCategory> subCategories = subCategoryRepository.findByCategory(category);
+        subCategories.forEach(subCategory -> {
+            subCategory.setCategory(null);
+            subCategoryRepository.save(subCategory);
+        });
+        categoryRepository.delete(category);
+    }
+
+    @Override
+    public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
+                new DataNotFoundException("Category does not exist!"));
+        category.setName(categoryDTO.getName());
+        return categoryRepository.save(category);
+    }
+
+    @Override
+    public List<Category> getAllCategory() {
+        return categoryRepository.findAll();
+    }
+
+    @Override
+    public Category getCategoryById(Long categoryId) {
+        return categoryRepository.findById(categoryId).orElseThrow(() ->
+                new DataNotFoundException("Category does not exist!"));
+    }
+
+    @Override
+    public Category addSubcategory(Long categoryId, SubCategoryDTO subCategoryDTO) {
+        SubCategory existSubcategory = subCategoryRepository.findByName(subCategoryDTO.getSubCategoryName())
+                .orElseThrow(() -> new DataNotFoundException("Subcategory does not exist!"));
+        Category category = getCategoryById(categoryId);
+        category.getSubCategoryList().add(existSubcategory);
+        existSubcategory.setCategory(category);
+        return categoryRepository.save(category);
+    }
+
 }

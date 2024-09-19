@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import java.util.List;
+
 @Data
 @Builder
 public class ProductDTO {
@@ -14,4 +16,5 @@ public class ProductDTO {
     private float price;
     private String thumbnail;
     private Long categoryId;
+    private List<Long> subcategories;
 }
