@@ -13,5 +13,6 @@ public class ProductDTO {
     private String description;
     private float price;
     private String thumbnail;
-    private Long categoryId;
+    private int subCategoryId;
+    private int categoryId;
 }

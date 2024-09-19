@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,11 +18,14 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "total")
-    private int total;
+    @Column(name = "number_of_products")
+    private int numberOfProducts;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private User user;
+
+    @JsonProperty("total_money")
+    private Float totalMoney;
 
     @OneToMany(mappedBy = "cart")
     private List<CartItem> cartItems;
