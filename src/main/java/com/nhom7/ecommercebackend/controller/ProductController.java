@@ -82,6 +82,7 @@ public class ProductController {
                 .thumbnail(product.getThumbnail())
                 .categoryId(categoryId)
                 .subcategories(subcategoriesId)
+                .quantity(product.getQuantity())
                 .build();
     }
 
@@ -92,6 +93,7 @@ public class ProductController {
         product.setDescription(productDTO.getDescription());
         product.setPrice(productDTO.getPrice());
         product.setThumbnail(productDTO.getThumbnail());
+        product.setQuantity(productDTO.getQuantity());
         return product;
     }
 }

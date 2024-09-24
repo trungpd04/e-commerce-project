@@ -17,4 +17,6 @@ public class ProductDTO {
     private String thumbnail;
     private Long categoryId;
     private List<Long> subcategories;
+    @Range(min = 0, message = "Quantity must be a non-negative value")
+    private int quantity;
 }

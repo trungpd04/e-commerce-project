@@ -31,6 +31,8 @@ public class Product {
 
     @Column(name = "is_active")
     private Boolean isActive;
+    @Column(name = "quantity")
+    private Integer quantity;
 
     @ManyToMany
     @JoinTable(name = "product_subcategory",
