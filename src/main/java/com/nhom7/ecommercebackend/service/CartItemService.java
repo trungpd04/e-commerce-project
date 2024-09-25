@@ -6,6 +6,6 @@ import com.nhom7.ecommercebackend.request.CartItemDTO;
 
 public interface CartItemService {
     CartItem creatCartItem(CartItemDTO cartItemDTO);
-    CartItem updateCartItem(CartItemDTO cartItemDTO);
-    void deleteCartItem(int cartItemId);
+    CartItem updateCartItemById(int cartItemId, CartItemDTO cartItemDTO);
+    void deleteCartItemById(int cartItemId);
 }

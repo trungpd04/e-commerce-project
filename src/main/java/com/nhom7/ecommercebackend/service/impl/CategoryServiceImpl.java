@@ -52,6 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new DataNotFoundException("Category does not exist!"));

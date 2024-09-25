@@ -33,14 +33,14 @@ public class Product {
     private Boolean isActive;
 
     @ManyToMany
-    @JoinTable(name = "product_subcategory",
-            joinColumns = @JoinColumn(name = "product_id"),
-            inverseJoinColumns = @JoinColumn(name = "subcategory_id"))
     private List<SubCategory> subcategory;
 
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     private List<ProductImage> productImages;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private ProductDetail productDetail;
 }
 

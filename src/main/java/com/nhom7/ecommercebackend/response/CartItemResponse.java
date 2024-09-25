@@ -6,6 +6,9 @@ import com.nhom7.ecommercebackend.request.ProductDTO;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Builder
 public class CartItemResponse {
@@ -19,12 +22,17 @@ public class CartItemResponse {
 
     public static CartItemResponse fromCartItem(CartItem cartItem) {
 
+        List<Long> subcategoryId = new ArrayList<>();
+        cartItem.getProduct().getSubcategory().forEach(subCategory -> {
+            subcategoryId.add(subCategory.getId());
+        });
+
         ProductDTO productDTO1 = ProductDTO.builder()
                 .name(cartItem.getProduct().getName())
                 .description(cartItem.getProduct().getDescription())
                 .price(cartItem.getProduct().getPrice())
                 .thumbnail(cartItem.getProduct().getThumbnail())
-                .subCategoryId(cartItem.getProduct().getSubcategory().getFirst().getId())
+                .subcategory(subcategoryId)
                 .categoryId(cartItem.getProduct().getSubcategory().getFirst().getCategory().getId())
                 .build();
         return CartItemResponse.builder()

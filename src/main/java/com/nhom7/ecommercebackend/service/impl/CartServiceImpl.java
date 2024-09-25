@@ -3,7 +3,9 @@ package com.nhom7.ecommercebackend.service.impl;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Cart;
 import com.nhom7.ecommercebackend.model.CartItem;
+import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.User;
+import com.nhom7.ecommercebackend.repository.CartItemRepository;
 import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.UserRepository;
@@ -23,6 +25,8 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final CartItemRepository cartItemRepository;
+
     @Override
     public Cart getCardByUserId(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
@@ -42,11 +46,6 @@ public class CartServiceImpl implements CartService {
                 .totalMoney(0f)
                 .build();
         return cartRepository.save(cart);
-    }
-
-    @Override
-    public Cart addToCart(CartItemDTO cartItemDTO) {
-        return null;
     }
 
     @Override

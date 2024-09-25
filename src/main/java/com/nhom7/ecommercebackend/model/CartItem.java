@@ -19,9 +19,9 @@ public class CartItem extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
-    private Long quantity;
+    private int quantity;
 
     @ManyToOne
     @JoinColumn(name = "card_id")

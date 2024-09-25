@@ -1,6 +1,7 @@
 package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.Cart;
+import com.nhom7.ecommercebackend.model.CartItem;
 import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.request.CartDTO;
 import com.nhom7.ecommercebackend.request.CartItemDTO;
@@ -36,6 +37,15 @@ public class CartController {
                 .data(CartResponse.fromCart(cart))
                 .build();
     }
+//    @PostMapping("/add_to_cart")
+//    public ApiResponse addToCart(@RequestBody CartItemDTO cartItemDTO) {
+//        Cart cart = cartService.addToCart(cartItemDTO);
+//        return ApiResponse.builder()
+//                .message("Add item to card successfully!")
+//                .status(HTTP_OK)
+//                .data(CartResponse.fromCart(cart))
+//                .build();
+//    }
     private CartDTO toCartDTO(Cart cart) {
         return CartDTO.builder()
                 .userId(cart.getUser().getId())

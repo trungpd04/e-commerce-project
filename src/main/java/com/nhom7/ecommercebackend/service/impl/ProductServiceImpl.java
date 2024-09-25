@@ -2,20 +2,19 @@ package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.InvalidParamException;
-import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductImage;
-import com.nhom7.ecommercebackend.model.SubCategory;
-import com.nhom7.ecommercebackend.repository.CategoryRepository;
-import com.nhom7.ecommercebackend.repository.ProductImageRepository;
-import com.nhom7.ecommercebackend.repository.ProductRepository;
-import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
+import com.nhom7.ecommercebackend.model.*;
+import com.nhom7.ecommercebackend.repository.*;
 import com.nhom7.ecommercebackend.request.ProductDTO;
+import com.nhom7.ecommercebackend.request.ProductDetailDTO;
 import com.nhom7.ecommercebackend.request.ProductImageDTO;
+import com.nhom7.ecommercebackend.response.ProductResponse;
 import com.nhom7.ecommercebackend.service.ProductService;
+import com.nhom7.ecommercebackend.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,51 +26,69 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final ProductImageRepository productImageRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
+
         if (!productDTO.getName().isBlank() && productRepository.existsByName(productDTO.getName())) {
             throw new DataIntegrityViolationException("Product name already exists!");
         }
-//        SubCategory subCategory = subCategoryRepository.findById(productDTO.getSubCategoryId())
-//                .orElseThrow(() -> new DataNotFoundException("Subcategory does not exist!"));
-        List<SubCategory> subCategories = new ArrayList<>();
-//        subCategories.add(subCategory);
-        Product newProduct = Product.builder()
-                .name(productDTO.getName())
-                .description(productDTO.getDescription())
-                .price(productDTO.getPrice())
-                .thumbnail(productDTO.getThumbnail())
-                .subcategory(subCategories)
-                .build();
-
+        Category category = categoryRepository.findById(productDTO.getCategoryId())
+                .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
+        Product newProduct = buildProduct(productDTO);
         return productRepository.save(newProduct);
-    }
-    @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
     }
     @Override
     public Product getProductById(Long productId) throws DataNotFoundException {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product not found for ID: " + productId));
     }
-    @Override
-    @Transactional
-    public Product saveProduct(Product product) {
-        return productRepository.save(product);
-    }
+
     @Override
     @Transactional
     public void deleteProduct(Long productId) throws DataNotFoundException {
         if (!productRepository.existsById(productId)) {
             throw new DataNotFoundException("Product not found for ID: " + productId);
         }
+
         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public Product updateProduct(Long productId, ProductDTO productDTO) {
+        Product product = productRepository.findProductById(productId)
+                .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
+        Category category = categoryRepository.findById(productDTO.getCategoryId())
+                .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
+        List<SubCategory> subCategories = new ArrayList<>();
+        productDTO.getSubcategory().forEach(subCategoryId -> {
+            SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
+                    .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
+            subCategories.add(subCategory);
+        });
+        ProductDetail productDetail = ProductDetail.builder()
+                .cpu(productDTO.getProductDetailDTO().getCpu())
+                .ram(productDTO.getProductDetailDTO().getRam())
+                .screen(productDTO.getProductDetailDTO().getScreen())
+                .osName(productDTO.getProductDetailDTO().getOsName())
+                .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
+                .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())
+                .manufacturer(productDTO.getProductDetailDTO().getManufacturer())
+                .color(productDTO.getProductDetailDTO().getColor())
+                .quantity(productDTO.getProductDetailDTO().getQuantity())
+                .designDescription(productDTO.getProductDetailDTO().getDesignDescription())
+                .build();
+        product.setProductDetail(productDetail);
+        product.setName(product.getName());
+        product.setPrice(product.getPrice());
+        product.setThumbnail(product.getThumbnail());
+        product.setDescription(product.getDescription());
+        product.setSubcategory(subCategories);
+        return productRepository.save(product);
     }
 
     @Override
@@ -93,6 +110,42 @@ public class ProductServiceImpl implements ProductService {
         }
         productRepository.save(product);
         return productImageRepository.save(productImage);
+    }
+
+    @Override
+    public Page<ProductResponse> getAllProduct(String keyword, Integer categoryId, Integer subcategoryId,  PageRequest pageRequest) {
+        Page<Product> productPage;
+        productPage = productRepository.getAllProducts(keyword, categoryId, subcategoryId, pageRequest);
+        return productPage.map(ProductResponse::fromProduct);
+    }
+
+    private Product buildProduct(ProductDTO productDTO, Long... productId) {
+        List<SubCategory> subCategories = new ArrayList<>();
+        productDTO.getSubcategory().forEach(subCategoryId -> {
+            SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
+                    .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
+            subCategories.add(subCategory);
+        });
+        ProductDetail productDetail = ProductDetail.builder()
+                .cpu(productDTO.getProductDetailDTO().getCpu())
+                .ram(productDTO.getProductDetailDTO().getRam())
+                .screen(productDTO.getProductDetailDTO().getScreen())
+                .osName(productDTO.getProductDetailDTO().getOsName())
+                .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
+                .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())
+                .manufacturer(productDTO.getProductDetailDTO().getManufacturer())
+                .color(productDTO.getProductDetailDTO().getColor())
+                .quantity(productDTO.getProductDetailDTO().getQuantity())
+                .designDescription(productDTO.getProductDetailDTO().getDesignDescription())
+                .build();
+        return Product.builder()
+                .name(productDTO.getName())
+                .description(productDTO.getDescription())
+                .price(productDTO.getPrice())
+                .thumbnail(productDTO.getThumbnail())
+                .subcategory(subCategories)
+                .productDetail(productDetail)
+                .build();
     }
 
 }
