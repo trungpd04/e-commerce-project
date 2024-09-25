@@ -27,7 +27,7 @@ public class CategoryController {
     public ApiResponse createCategory(@RequestBody CategoryDTO categoryDTO) throws Exception {
         Category newCategory = categoryService.creatCategory(categoryDTO);
         return ApiResponse.builder()
-                .data(toCategoryDTO(newCategory))
+                .data(newCategory)
                 .message("Create Category successfully!")
                 .status(HTTP_OK)
                 .build();
@@ -38,7 +38,7 @@ public class CategoryController {
         Category category = categoryService.getCategoryById(categoryId);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+                .data(category)
                 .message("Get category by Id successfully!")
                 .build();
     }
@@ -47,8 +47,9 @@ public class CategoryController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get all category successfully!")
-                .data(toListCategoryDTO(categoryService.getAllCategory()))
+                .data(categoryService.getAllCategory())
                 .build();
+
     }
     @DeleteMapping("/{categoryId}")
     public ApiResponse deleteCategoryById(@PathVariable("categoryId") Long categoryId) {
@@ -66,7 +67,7 @@ public class CategoryController {
         Category category = categoryService.updateCategory(categoryId, categoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+//                .data(toCategoryDTO(category))
                 .message("Update category successfully!")
                 .build();
 
@@ -79,7 +80,7 @@ public class CategoryController {
         Category category = categoryService.addSubcategory(categoryId, subCategoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+                .data(category)
                 .message("Add subcategory successfully!")
                 .build();
     }

@@ -34,7 +34,7 @@ public class SubCategoryController {
         return ApiResponse.builder()
                 .message("Get all subcategory successfully!")
                 .status(HTTP_OK)
-                .data(toSubcategoryDTOList(subCategories))
+                .data(subCategories)
                 .build();
     }
     @GetMapping("/{subcategoryId}")
