@@ -29,7 +29,12 @@ public class ProductDetailResponse {
     @JsonProperty("os_name")
     private String osName;
 
-    private String screen;
+    @JsonProperty("screen_type")
+    private String screenType;
+    @JsonProperty("screen_refresh_rate")
+    private int screenRefreshRate;
+    @JsonProperty("screen_size")
+    private float screenSize;
 
     @JsonProperty("battery_capacity")
     private int batteryCapacity;
@@ -53,7 +58,9 @@ public class ProductDetailResponse {
                 .thumbnail(product.getThumbnail())
                 .cpu(product.getProductDetail().getCpu())
                 .ram(product.getProductDetail().getRam())
-                .screen(product.getProductDetail().getScreen())
+                .screenSize(product.getProductDetail().getScreenSize())
+                .screenType(product.getProductDetail().getScreenType())
+                .screenRefreshRate(product.getProductDetail().getScreenRefreshRate())
                 .osName(product.getProductDetail().getOsName())
                 .designDescription(product.getProductDetail().getDesignDescription())
                 .batteryCapacity(product.getProductDetail().getBatteryCapacity())

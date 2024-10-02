@@ -6,6 +6,8 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
+
 @Entity
 @Table(name = "orders")
 @Getter
@@ -14,9 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class Order {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

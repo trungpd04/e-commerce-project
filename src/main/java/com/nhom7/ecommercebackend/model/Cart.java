@@ -16,7 +16,7 @@ import java.util.List;
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "number_of_products")
     private int numberOfProducts;
@@ -27,7 +27,7 @@ public class Cart {
     @JsonProperty("total_money")
     private Float totalMoney;
 
-    @OneToMany(mappedBy = "cart")
+    @OneToMany(mappedBy = "cart", orphanRemoval = true)
     private List<CartItem> cartItems;
 
 }

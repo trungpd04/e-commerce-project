@@ -13,7 +13,7 @@ import java.util.List;
 public class CartResponse {
 
     @JsonProperty("cart_id")
-    private int cartId;
+    private Long cartId;
     @JsonProperty("user_id")
     private Long userId;
     @JsonProperty("total_money")

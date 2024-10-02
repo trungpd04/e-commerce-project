@@ -25,6 +25,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
+
     private final ProductRepository productRepository;
     private final SubCategoryRepository subCategoryRepository;
     private final ProductImageRepository productImageRepository;
@@ -51,14 +52,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long productId) throws DataNotFoundException {
-        if (!productRepository.existsById(productId)) {
-            throw new DataNotFoundException("Product not found for ID: " + productId);
-        }
-
-        productRepository.deleteById(productId);
+        Product product = productRepository.findProductById(productId)
+                        .orElseThrow(() -> new DataNotFoundException("Product not found for ID: " + productId));
+        product.setActive(false); // xóa mềm
+        productRepository.save(product);
     }
 
     @Override
+    @Transactional
     public Product updateProduct(Long productId, ProductDTO productDTO) {
         Product product = productRepository.findProductById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
@@ -73,7 +74,9 @@ public class ProductServiceImpl implements ProductService {
         ProductDetail productDetail = ProductDetail.builder()
                 .cpu(productDTO.getProductDetailDTO().getCpu())
                 .ram(productDTO.getProductDetailDTO().getRam())
-                .screen(productDTO.getProductDetailDTO().getScreen())
+                .screenSize(productDTO.getProductDetailDTO().getScreenSize())
+                .screenType(productDTO.getProductDetailDTO().getScreenType())
+                .screenRefreshRate(productDTO.getProductDetailDTO().getScreenRefreshRate())
                 .osName(productDTO.getProductDetailDTO().getOsName())
                 .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
                 .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())
@@ -129,7 +132,9 @@ public class ProductServiceImpl implements ProductService {
         ProductDetail productDetail = ProductDetail.builder()
                 .cpu(productDTO.getProductDetailDTO().getCpu())
                 .ram(productDTO.getProductDetailDTO().getRam())
-                .screen(productDTO.getProductDetailDTO().getScreen())
+                .screenSize(productDTO.getProductDetailDTO().getScreenSize())
+                .screenType(productDTO.getProductDetailDTO().getScreenType())
+                .screenRefreshRate(productDTO.getProductDetailDTO().getScreenRefreshRate())
                 .osName(productDTO.getProductDetailDTO().getOsName())
                 .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
                 .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())

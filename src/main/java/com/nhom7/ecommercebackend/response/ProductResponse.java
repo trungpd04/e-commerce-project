@@ -16,6 +16,7 @@ public class ProductResponse {
     private String description;
     private String thumbnail;
     private float price;
+    private boolean active;
     @JsonProperty("category_name")
     private String category;
     private List<String> subcategory;
@@ -31,6 +32,7 @@ public class ProductResponse {
                 .description(product.getDescription())
                 .thumbnail(product.getThumbnail())
                 .price(product.getPrice())
+                .active(product.getActive())
                 .category(product.getSubcategory().getFirst().getCategory().getName())
                 .subcategory(subcategory)
                 .build();

@@ -50,12 +50,12 @@ public class ProductController {
             @RequestParam(value = "search", required = false) String keyword,
             @RequestParam(value = "category_id", required = false) Integer categoryId,
             @RequestParam(value = "subcategory_id", required = false) Integer subCategoryId,
-            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
-            @RequestParam(value = "size", defaultValue = "5", required = false) int size,
-            @RequestParam(value = "sort_by", required = false) String sortBy,
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
+            @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
             @RequestParam(value = "sort_dir", required = false) String sortDir
     ) {
-        Sort.Direction sortDirection = Objects.equals(sortDir, "ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Sort.Direction sortDirection = Objects.equals(sortDir, "DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(sortDirection, sortBy);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
         Page<ProductResponse> productResponses = productService
@@ -238,7 +238,9 @@ public class ProductController {
         ProductDetailDTO productDetailDTO = ProductDetailDTO.builder()
                 .cpu(product.getProductDetail().getCpu())
                 .ram(product.getProductDetail().getRam())
-                .screen(product.getProductDetail().getScreen())
+                .screenSize(product.getProductDetail().getScreenSize())
+                .screenType(product.getProductDetail().getScreenType())
+                .screenRefreshRate(product.getProductDetail().getScreenRefreshRate())
                 .osName(product.getProductDetail().getOsName())
                 .designDescription(product.getProductDetail().getDesignDescription())
                 .batteryCapacity(product.getProductDetail().getBatteryCapacity())

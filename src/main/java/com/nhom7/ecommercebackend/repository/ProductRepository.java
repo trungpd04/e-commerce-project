@@ -33,4 +33,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("categoryId") Integer categoryId,
             @Param("subcategoryId") Integer subcategoryId,
             Pageable pageable);
+
 }

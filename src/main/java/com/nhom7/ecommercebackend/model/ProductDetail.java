@@ -27,7 +27,9 @@ public class ProductDetail {
 
     private String designDescription;
     private String osName;
-    private String screen;
+    private String screenType;
+    private int screenRefreshRate;
+    private float screenSize;
     private int batteryCapacity;
     private String manufacturer;
     private int guaranteeMonth;

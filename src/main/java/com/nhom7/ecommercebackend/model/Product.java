@@ -1,6 +1,5 @@
 package com.nhom7.ecommercebackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,8 +28,8 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "is_active")
-    private Boolean isActive;
+    @Column(name = "active")
+    private Boolean active;
 
     @ManyToMany
     private List<SubCategory> subcategory;
@@ -42,5 +41,9 @@ public class Product {
 
     @OneToOne(cascade = CascadeType.ALL)
     private ProductDetail productDetail;
+    @PrePersist
+    private void setActive() {
+        setActive(true);
+    }
 }
 

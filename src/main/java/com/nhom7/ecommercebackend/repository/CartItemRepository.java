@@ -10,5 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
     boolean existsByProduct(Product product);
     CartItem findByCartAndProduct(Cart cart, Product product);
+    CartItem findByProduct(Product product);
 
 }

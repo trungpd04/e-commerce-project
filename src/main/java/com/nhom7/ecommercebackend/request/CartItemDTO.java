@@ -9,7 +9,7 @@ import lombok.Data;
 public class CartItemDTO {
 
     @JsonProperty("cart_id")
-    private int cartId;
+    private Long cartId;
 
     private int quantity;
 
