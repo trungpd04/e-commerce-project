@@ -42,44 +42,9 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public class ProductController {
     private final ProductService productService;
 
-//    @GetMapping("")
-//    public ApiResponse getAllProducts(
-//            @RequestParam(value = "search", required = false) String keyword,
-//            @RequestParam(value = "category_id", required = false) Integer categoryId,
-//            @RequestParam(value = "subcategory_id", required = false) Integer subCategoryId,
-//            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
-//            @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
-//            @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
-//            @RequestParam(value = "sort_dir", required = false) String sortDir
-//    ) {
-//        Sort.Direction sortDirection = Objects.equals(sortDir, "DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-//        Sort sort = Sort.by(sortDirection, sortBy);
-//        PageRequest pageRequest = PageRequest.of(page, size, sort);
-//        Page<ProductResponse> productResponses = productService
-//                .getAllProduct(keyword, categoryId, subCategoryId,  pageRequest);
-//        int pageNo = productResponses.getNumber();
-//        int pageSize = productResponses.getSize();
-//        int totalPages = productResponses.getTotalPages();
-//        int totalElements = productResponses.getNumberOfElements();
-//        boolean last = productResponses.isLast();
-//        ProductListResponse productListResponse = ProductListResponse
-//                .builder()
-//                .productResponses(productResponses.getContent())
-//                .pageNo(pageNo)
-//                .pageSize(pageSize)
-//                .totalPages(totalPages)
-//                .totalElements(totalElements)
-//                .last(last)
-//                .build();
-//        return ApiResponse.builder()
-//                .message("Fetch product successfully!")
-//                .status(HTTP_OK)
-//                .data(productListResponse)
-//                .build();
-//    }
     @GetMapping("")
     public ApiResponse getAllProductsFilter(
-            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "search", required = false) String keyword,
             @RequestParam(value = "category_id", required = false) Integer categoryId,
             @RequestParam(value = "subcategory_id", required = false) Integer subCategoryId,
             @RequestParam(value = "ram", required = false) String ramRange,
@@ -155,35 +120,6 @@ public class ProductController {
                 .status(HTTP_OK)
                 .build();
     }
-//    @GetMapping("/search")
-//    public ApiResponse getProductByNameOrCategoryNameOrSubcategoryName(
-//            @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword,
-//            @RequestParam(value = "page", defaultValue = "0", required = false) int pageNum,
-//            @RequestParam(value = "size", defaultValue = "5", required = false) int pageSize
-//    ) {
-//        PageRequest pageRequest = PageRequest.of(pageNum, pageSize);
-//        Page<ProductResponse> productResponses = productService
-//                .getAllProductByNameByCategoryNameOrBySubcategoryName(keyword, pageRequest);
-//        int pageNo = productResponses.getNumber();
-//        int size = productResponses.getSize();
-//        int totalPages = productResponses.getTotalPages();
-//        int totalElements = productResponses.getNumberOfElements();
-//        boolean last = productResponses.isLast();
-//        ProductListResponse productListResponse = ProductListResponse
-//                .builder()
-//                .productResponses(productResponses.getContent())
-//                .pageNo(pageNo)
-//                .pageSize(size)
-//                .totalPages(totalPages)
-//                .totalElements(totalElements)
-//                .last(last)
-//                .build();
-//        return ApiResponse.builder()
-//                .message("Fetch product successfully!")
-//                .status(HTTP_OK)
-//                .data(productListResponse)
-//                .build();
-//    }
     @PutMapping("/{productId}")
     public ApiResponse updateProduct(
             @PathVariable("productId") Long productId,
