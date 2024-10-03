@@ -117,12 +117,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getAllProduct(String keyword, Integer categoryId, Integer subcategoryId,  PageRequest pageRequest) {
-        Page<Product> productPage;
-        productPage = productRepository.getAllProducts(keyword, categoryId, subcategoryId, pageRequest);
-        return productPage.map(ProductResponse::fromProduct);
-    }
-    @Override
     public Page<ProductResponse> getAllProductFilter(Filter filter, PageRequest pageRequest) {
         Page<Product> productPage;
         Specification<Product> specification = new FilterSpecification<>(filter);

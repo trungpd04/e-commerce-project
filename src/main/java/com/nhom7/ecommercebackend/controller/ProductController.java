@@ -243,6 +243,7 @@ public class ProductController {
         product.setDescription(productDTO.getDescription());
         product.setPrice(productDTO.getPrice());
         product.setThumbnail(productDTO.getThumbnail());
+        product.setQuantity(productDTO.getQuantity());
         return product;
     }
 }
