@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -119,6 +120,13 @@ public class ProductServiceImpl implements ProductService {
     public Page<ProductResponse> getAllProduct(String keyword, Integer categoryId, Integer subcategoryId,  PageRequest pageRequest) {
         Page<Product> productPage;
         productPage = productRepository.getAllProducts(keyword, categoryId, subcategoryId, pageRequest);
+        return productPage.map(ProductResponse::fromProduct);
+    }
+    @Override
+    public Page<ProductResponse> getAllProductFilter(Filter filter, PageRequest pageRequest) {
+        Page<Product> productPage;
+        Specification<Product> specification = new FilterSpecification<>(filter);
+        productPage = productRepository.findAll(specification, pageRequest);
         return productPage.map(ProductResponse::fromProduct);
     }
 

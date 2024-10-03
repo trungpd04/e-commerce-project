@@ -2,8 +2,8 @@ package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductDetail;
 import com.nhom7.ecommercebackend.model.ProductImage;
+import com.nhom7.ecommercebackend.repository.Filter;
 import com.nhom7.ecommercebackend.request.ProductDTO;
 import com.nhom7.ecommercebackend.request.ProductDetailDTO;
 import com.nhom7.ecommercebackend.request.ProductImageDTO;
@@ -13,14 +13,12 @@ import com.nhom7.ecommercebackend.response.ProductListResponse;
 import com.nhom7.ecommercebackend.response.ProductResponse;
 import com.nhom7.ecommercebackend.service.ProductService;
 import com.nhom7.ecommercebackend.utils.FileUtils;
-import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +32,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -45,11 +42,52 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public class ProductController {
     private final ProductService productService;
 
+//    @GetMapping("")
+//    public ApiResponse getAllProducts(
+//            @RequestParam(value = "search", required = false) String keyword,
+//            @RequestParam(value = "category_id", required = false) Integer categoryId,
+//            @RequestParam(value = "subcategory_id", required = false) Integer subCategoryId,
+//            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
+//            @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
+//            @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
+//            @RequestParam(value = "sort_dir", required = false) String sortDir
+//    ) {
+//        Sort.Direction sortDirection = Objects.equals(sortDir, "DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+//        Sort sort = Sort.by(sortDirection, sortBy);
+//        PageRequest pageRequest = PageRequest.of(page, size, sort);
+//        Page<ProductResponse> productResponses = productService
+//                .getAllProduct(keyword, categoryId, subCategoryId,  pageRequest);
+//        int pageNo = productResponses.getNumber();
+//        int pageSize = productResponses.getSize();
+//        int totalPages = productResponses.getTotalPages();
+//        int totalElements = productResponses.getNumberOfElements();
+//        boolean last = productResponses.isLast();
+//        ProductListResponse productListResponse = ProductListResponse
+//                .builder()
+//                .productResponses(productResponses.getContent())
+//                .pageNo(pageNo)
+//                .pageSize(pageSize)
+//                .totalPages(totalPages)
+//                .totalElements(totalElements)
+//                .last(last)
+//                .build();
+//        return ApiResponse.builder()
+//                .message("Fetch product successfully!")
+//                .status(HTTP_OK)
+//                .data(productListResponse)
+//                .build();
+//    }
     @GetMapping("")
-    public ApiResponse getAllProducts(
-            @RequestParam(value = "search", required = false) String keyword,
+    public ApiResponse getAllProductsFilter(
+            @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "category_id", required = false) Integer categoryId,
             @RequestParam(value = "subcategory_id", required = false) Integer subCategoryId,
+            @RequestParam(value = "ram", required = false) String ramRange,
+            @RequestParam(value = "storage", required = false) String storage,
+            @RequestParam(value = "price", required = false) String price,
+            @RequestParam(value = "screen_size", required = false) String screenSize,
+            @RequestParam(value = "screen_type", required = false) String screenType,
+            @RequestParam(value = "screen_refresh_rate", required = false) String refreshRate,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
             @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
@@ -58,8 +96,10 @@ public class ProductController {
         Sort.Direction sortDirection = Objects.equals(sortDir, "DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Sort sort = Sort.by(sortDirection, sortBy);
         PageRequest pageRequest = PageRequest.of(page, size, sort);
+        Filter filter = new Filter(
+                keyword, categoryId, subCategoryId,price, ramRange, screenType, screenSize, refreshRate, storage);
         Page<ProductResponse> productResponses = productService
-                .getAllProduct(keyword, categoryId, subCategoryId,  pageRequest);
+                .getAllProductFilter(filter, pageRequest);
         int pageNo = productResponses.getNumber();
         int pageSize = productResponses.getSize();
         int totalPages = productResponses.getTotalPages();
