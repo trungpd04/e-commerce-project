@@ -1,6 +1,5 @@
 package com.nhom7.ecommercebackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,10 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Product {
+public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "name", nullable = false, length = 350)
     private String name;
 
@@ -28,15 +28,25 @@ public class Product {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "is_active")
-    private boolean isActive;
+    @Column(name = "active")
+    private Boolean active;
 
     @ManyToMany
-    @JsonIgnore
     private List<SubCategory> subcategory;
 
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     private List<ProductImage> productImages;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private ProductDetail productDetail;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Rating> ratings;
+    @PrePersist
+    private void setActive() {
+        setActive(true);
+    }
 }
+

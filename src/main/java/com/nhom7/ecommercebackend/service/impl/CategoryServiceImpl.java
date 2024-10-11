@@ -2,13 +2,11 @@ package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
-import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
-import com.nhom7.ecommercebackend.request.CategoryDTO;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +49,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new DataNotFoundException("Category does not exist!"));

@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,6 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "categories")
-@Data//toString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,10 +26,9 @@ public class Category {
 
     @OneToMany(mappedBy = "category",
             cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH},
-            fetch = FetchType.EAGER,
             orphanRemoval = false)
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnore
+//    @JsonIgnore
+    @JsonProperty("sub_categories")
     private List<SubCategory> subCategoryList;
-
 }

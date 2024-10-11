@@ -8,7 +8,6 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "sub_categories")
-@Data//toString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -17,7 +16,7 @@ import java.util.Objects;
 public class SubCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(name = "name")
     private String name;

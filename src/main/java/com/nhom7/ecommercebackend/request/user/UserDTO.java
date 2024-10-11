@@ -1,4 +1,4 @@
-package com.nhom7.ecommercebackend.request;
+package com.nhom7.ecommercebackend.request.user;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;

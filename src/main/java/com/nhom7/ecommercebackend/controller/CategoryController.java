@@ -1,16 +1,13 @@
 package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.SubCategory;
-import com.nhom7.ecommercebackend.request.CategoryDTO;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.service.CategoryService;
-import com.nhom7.ecommercebackend.service.SubCategoryService;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -24,10 +21,12 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public class CategoryController {
     private final CategoryService categoryService;
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse createCategory(@RequestBody CategoryDTO categoryDTO) throws Exception {
         Category newCategory = categoryService.creatCategory(categoryDTO);
         return ApiResponse.builder()
-                .data(toCategoryDTO(newCategory))
+                .data(newCategory)
                 .message("Create Category successfully!")
                 .status(HTTP_OK)
                 .build();
@@ -38,7 +37,7 @@ public class CategoryController {
         Category category = categoryService.getCategoryById(categoryId);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+                .data(category)
                 .message("Get category by Id successfully!")
                 .build();
     }
@@ -47,10 +46,13 @@ public class CategoryController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get all category successfully!")
-                .data(toListCategoryDTO(categoryService.getAllCategory()))
+                .data(categoryService.getAllCategory())
                 .build();
+
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{categoryId}")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse deleteCategoryById(@PathVariable("categoryId") Long categoryId) {
         categoryService.deleteCategory(categoryId);
         return ApiResponse.builder()
@@ -59,6 +61,8 @@ public class CategoryController {
                 .build();
     }
     @PutMapping("/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse updateCategory(
             @PathVariable("categoryId") Long categoryId,
             @RequestBody CategoryDTO categoryDTO
@@ -66,12 +70,14 @@ public class CategoryController {
         Category category = categoryService.updateCategory(categoryId, categoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+//                .data(toCategoryDTO(category))
                 .message("Update category successfully!")
                 .build();
 
     }
     @PostMapping("/add_subcategory/{categoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse addSubcategory(
             @PathVariable("categoryId") Long categoryId,
             @RequestBody SubCategoryDTO subCategoryDTO
@@ -79,7 +85,7 @@ public class CategoryController {
         Category category = categoryService.addSubcategory(categoryId, subCategoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(toCategoryDTO(category))
+                .data(category)
                 .message("Add subcategory successfully!")
                 .build();
     }
@@ -96,12 +102,5 @@ public class CategoryController {
         }
         return CategoryDTO.builder()
                 .name(newCategory.getName()).subCategories(null).build();
-    }
-    private List<CategoryDTO> toListCategoryDTO(List<Category> categories) {
-        List<CategoryDTO>  subCategoryDTOS = new ArrayList<>();
-        categories.forEach(category -> {
-            subCategoryDTOS.add(toCategoryDTO(category));
-        });
-        return subCategoryDTOS;
     }
 }

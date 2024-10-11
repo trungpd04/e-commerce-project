@@ -1,4 +1,4 @@
-package com.nhom7.ecommercebackend.request;
+package com.nhom7.ecommercebackend.request.category;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,19 +9,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 
+
 import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryDTO {
+public class SubCategoryDTO {
 
-    @NotBlank(message = "Category name can not be blank")
-    @Range(min = 3, message = "Category name must have at least 3 characters")
-    private String name;
-
-    @JsonProperty("sub_categories")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> subCategories;
+    @JsonProperty("name")
+    @NotBlank(message = "Subcategory name can not be blank!")
+    @Range(min = 3, message = "Subcategory name must has at least 3 characters!")
+    private String subCategoryName;
 }
