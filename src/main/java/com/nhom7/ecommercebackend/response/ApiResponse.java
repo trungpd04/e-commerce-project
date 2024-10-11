@@ -3,10 +3,13 @@ package com.nhom7.ecommercebackend.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 @Builder
-@Data
+@Getter
+@Setter
 public class ApiResponse {
     private int status;
     private String message;

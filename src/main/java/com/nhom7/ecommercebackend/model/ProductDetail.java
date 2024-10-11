@@ -3,17 +3,16 @@ package com.nhom7.ecommercebackend.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.Product;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+
 @Builder
 @Table(name ="product_detail")
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class ProductDetail {
 
     @Id
@@ -28,6 +27,7 @@ public class ProductDetail {
     private String designDescription;
     private String osName;
     private String screenType;
+    private int storage;
     private int screenRefreshRate;
     private float screenSize;
     private int batteryCapacity;

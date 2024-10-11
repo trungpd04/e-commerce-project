@@ -1,8 +1,7 @@
 package com.nhom7.ecommercebackend.service;
 
 import com.nhom7.ecommercebackend.model.SubCategory;
-import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 
 import java.util.List;
 

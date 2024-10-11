@@ -1,19 +1,13 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
-import com.nhom7.ecommercebackend.request.ProductDTO;
-import com.nhom7.ecommercebackend.request.ProductDetailDTO;
-import com.nhom7.ecommercebackend.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 @RequiredArgsConstructor
 public class FakeProductDataSeeder {
-
+//
 //    private final ProductService productService;
 //    private final Faker faker = new Faker();
 //    private final Random random = new Random();
@@ -153,7 +147,7 @@ public class FakeProductDataSeeder {
 //        float randomSize = minSize + random.nextFloat() * (maxSize - minSize);
 //        return Math.round(randomSize * 10) / 10.0f;  // Round to one decimal place
 //    }
-
+//
 
 }
 

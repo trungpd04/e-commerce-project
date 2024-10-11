@@ -1,12 +1,7 @@
 package com.nhom7.ecommercebackend.service;
 
 import com.nhom7.ecommercebackend.model.Cart;
-import com.nhom7.ecommercebackend.model.CartItem;
-import com.nhom7.ecommercebackend.request.CartDTO;
-import com.nhom7.ecommercebackend.request.CartItemDTO;
-import io.swagger.v3.oas.models.OpenAPI;
-
-import java.util.Optional;
+import com.nhom7.ecommercebackend.request.cart.CartDTO;
 
 public interface CartService {
     Cart addToCart(Long productId, Long cartId);

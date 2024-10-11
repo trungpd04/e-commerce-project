@@ -7,11 +7,12 @@ import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.service.SubCategoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -61,6 +62,7 @@ public class SubCategoryServiceImpl implements SubCategoryService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public SubCategory deleteSubcategoryById(Long subcategoryId) {
         SubCategory subCategory = subCategoryRepository.findById(subcategoryId)
                 .orElseThrow(() -> new DataNotFoundException("Subcategory does not exist!"));

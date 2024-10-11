@@ -1,6 +1,8 @@
 package com.nhom7.ecommercebackend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -22,20 +24,18 @@ public class Order {
     private UUID id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_place_order_id")
     private User user;
 
-    @Column(name = "fullname", length = 100)
-    private String fullName;
+    @Column(name = "receiver_full_name", length = 100)
+    private String receiverFullName;
 
-    @Column(name = "email", length = 100)
-    private String email;
+    @Column(name = "buyer_email", length = 100)
+    private String buyerEmail;
 
-    @Column(name = "phone_number",nullable = false, length = 100)
-    private String phoneNumber;
-
-    @Column(name = "address", length = 100)
-    private String address;
+    @Column(name = "receiver_phone_number",nullable = false, length = 100)
+    @JsonProperty("receiver_phone_number")
+    private String receiverPhoneNumber;
 
     @Column(name = "note", length = 100)
     private String note;
@@ -47,6 +47,7 @@ public class Order {
     private String status;
 
     @Column(name = "total_money")
+    @Min(value = 0, message = "Total money must be >= 0")
     private Float totalMoney;
 
     @Column(name = "shipping_method")
@@ -65,7 +66,7 @@ public class Order {
     private String paymentMethod = "";
 
     @Column(name = "active")
-    private Boolean active;//thuộc về admin
+    private Boolean active; //thuộc về admin
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 //    @JsonManagedReference

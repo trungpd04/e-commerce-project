@@ -4,12 +4,12 @@ import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.*;
-import com.nhom7.ecommercebackend.request.ProductDTO;
-import com.nhom7.ecommercebackend.request.ProductDetailDTO;
-import com.nhom7.ecommercebackend.request.ProductImageDTO;
-import com.nhom7.ecommercebackend.response.ProductResponse;
+import com.nhom7.ecommercebackend.repository.filter.Filter;
+import com.nhom7.ecommercebackend.repository.filter.FilterSpecification;
+import com.nhom7.ecommercebackend.request.product.ProductDTO;
+import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
+import com.nhom7.ecommercebackend.response.product.ProductResponse;
 import com.nhom7.ecommercebackend.service.ProductService;
-import com.nhom7.ecommercebackend.utils.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,11 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -85,6 +83,7 @@ public class ProductServiceImpl implements ProductService {
                 .color(productDTO.getProductDetailDTO().getColor())
                 .quantity(productDTO.getProductDetailDTO().getQuantity())
                 .designDescription(productDTO.getProductDetailDTO().getDesignDescription())
+                .storage(productDTO.getProductDetailDTO().getStorage())
                 .build();
         product.setProductDetail(productDetail);
         product.setName(product.getName());
@@ -106,8 +105,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         int size = product.getProductImages().size();
         if(size >= ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
-            throw new InvalidParamException("Number of images must be <= "
-                    +ProductImage.MAXIMUM_IMAGES_PER_PRODUCT);
+            throw new InvalidParamException(STR."Number of images must be <= \{ProductImage.MAXIMUM_IMAGES_PER_PRODUCT}");
         }
         if(product.getThumbnail() == null) {
             product.setThumbnail(productImage.getImageUrl());
@@ -116,12 +114,6 @@ public class ProductServiceImpl implements ProductService {
         return productImageRepository.save(productImage);
     }
 
-    @Override
-    public Page<ProductResponse> getAllProduct(String keyword, Integer categoryId, Integer subcategoryId,  PageRequest pageRequest) {
-        Page<Product> productPage;
-        productPage = productRepository.getAllProducts(keyword, categoryId, subcategoryId, pageRequest);
-        return productPage.map(ProductResponse::fromProduct);
-    }
     @Override
     public Page<ProductResponse> getAllProductFilter(Filter filter, PageRequest pageRequest) {
         Page<Product> productPage;

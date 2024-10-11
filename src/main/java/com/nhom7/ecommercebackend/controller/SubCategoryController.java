@@ -1,11 +1,13 @@
 package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.SubCategory;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.service.SubCategoryService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public class SubCategoryController {
     private final SubCategoryService subCategoryService;
     @PostMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse createSubCategory(@RequestBody SubCategoryDTO subCategoryDTO) throws Exception {
         SubCategory subCategory = subCategoryService.createSubCategory(subCategoryDTO);
         return ApiResponse.builder()
@@ -48,6 +52,8 @@ public class SubCategoryController {
                 .build();
     }
     @PutMapping("/{subcategoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse updateSubcategory(
             @PathVariable("subcategoryId") Long subCategoryId,
             @RequestBody SubCategoryDTO subCategoryDTO
@@ -61,6 +67,8 @@ public class SubCategoryController {
                 .build();
     }
     @DeleteMapping("/{subcategoryId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse deleteSubcategory(@PathVariable Long subcategoryId) {
         SubCategory subCategory = subCategoryService.deleteSubcategoryById(subcategoryId);
         return ApiResponse.builder()
