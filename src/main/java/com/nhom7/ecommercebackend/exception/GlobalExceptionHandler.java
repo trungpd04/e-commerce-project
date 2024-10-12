@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend.exception;
 
 import com.nhom7.ecommercebackend.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
@@ -118,6 +119,36 @@ public class GlobalExceptionHandler {
 
         error.setTimeStamp(new Date());
         error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
+    @ExceptionHandler(PasswordCreationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleAppException(HttpServletRequest request, PasswordCreationException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleDataIntegrityViolationException(HttpServletRequest request, DataIntegrityViolationException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(HttpStatus.BAD_REQUEST.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);

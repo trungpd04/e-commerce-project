@@ -17,6 +17,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 @RequestMapping("${api.prefix}/carts")
 @SecurityRequirement(name = "bearer-key")
 public class CartController {
+
     private final CartService cartService;
 
     @PostMapping("")

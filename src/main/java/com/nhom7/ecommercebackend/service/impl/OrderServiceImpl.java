@@ -10,7 +10,7 @@ import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
-import com.nhom7.ecommercebackend.utils.ErrorCode;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +37,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order createOrder(OrderDTO orderDTO) {
         User user = userRepository.findById(orderDTO.getUserPlaceOrderId())
-                .orElseThrow(() -> new DataNotFoundException(ErrorCode.USER_NOT_EXIST));
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         List<OrderDetail> orderDetails = new ArrayList<>();
-        modelMapper.typeMap(OrderDTO.class, Order.class)
-                .addMappings(map -> map.skip(Order::setId));
         Order newOrder = new Order();
         modelMapper.map(orderDTO, newOrder);
         newOrder.setUser(user);
@@ -84,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order findOrderById(Long orderId) {
         return orderRepository.findById(orderId)
-                .orElseThrow(() -> new DataNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.ORDER_NOT_FOUND.toString()));
     }
 
     @Override

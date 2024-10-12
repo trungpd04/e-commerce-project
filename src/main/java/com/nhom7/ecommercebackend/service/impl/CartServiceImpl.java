@@ -11,7 +11,7 @@ import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.cart.CartDTO;
 import com.nhom7.ecommercebackend.service.CartService;
-import com.nhom7.ecommercebackend.utils.ErrorCode;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -60,9 +60,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart getCardByUserId(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
+        return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new DataNotFoundException("User does not have a cart!"));
-        return cart;
     }
 
     @Override
@@ -70,7 +69,7 @@ public class CartServiceImpl implements CartService {
     @PreAuthorize("hasRole('USER')")
     public Cart createCart(CartDTO cartDTO) {
         User existingUser = userRepository.findById(cartDTO.getUserId())
-                .orElseThrow(() -> new DataNotFoundException(ErrorCode.USER_NOT_EXIST));
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         if(cartRepository.existsByUserId(cartDTO.getUserId())) {
             throw new DataIntegrityViolationException("User's cart has already existed!");
         }
