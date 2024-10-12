@@ -4,6 +4,7 @@ import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.PermissionDenyException;
 import com.nhom7.ecommercebackend.exception.TokenException;
 import com.nhom7.ecommercebackend.model.User;
+import com.nhom7.ecommercebackend.model.UserOauth2Info;
 import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
@@ -60,7 +61,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
         User existiongUser = user.get();
         UsernamePasswordAuthenticationToken authenticationToken
                 = new UsernamePasswordAuthenticationToken(subject, loginRequest.getPassword(), existiongUser.getAuthorities());
-
+        System.out.println(authenticationToken.getAuthorities().toString());
         authenticationManager.authenticate(authenticationToken);
 
         return AuthenticationResponse.builder()
@@ -77,6 +78,11 @@ public class AuthenticateServiceImpl implements AuthenticateService {
     @Override
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws TokenException, ParseException, JOSEException {
         return jwtUtils.refreshToken(request);
+    }
+
+    @Override
+    public UserOauth2Info getOauth2UserInfo(String alt, String accessToken) {
+        return jwtUtils.getOauth2UserInfo(alt, accessToken) ;
     }
 
     @Override

@@ -10,7 +10,7 @@ import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.rating.RatingDTO;
 import com.nhom7.ecommercebackend.response.rating.RatingResponse;
 import com.nhom7.ecommercebackend.service.RatingService;
-import com.nhom7.ecommercebackend.utils.ErrorCode;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,7 +33,7 @@ public class RatingServiceImpl implements RatingService {
     @Transactional
     public Rating addRating(RatingDTO ratingDTO) {
         User user = userRepository.findById(ratingDTO.getUserId())
-                .orElseThrow(() -> new DataNotFoundException(ErrorCode.USER_NOT_EXIST));
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         Product product = productRepository.findProductById(ratingDTO.getProductId())
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
         Optional<Rating> existRating = ratingRepository.findByUserId(ratingDTO.getUserId());

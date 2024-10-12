@@ -36,7 +36,7 @@ public class FilterSpecification<Product> implements Specification<Product> {
         if(filter != null && filter.getKeyword() != null) {
             Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
             Join<Product, Category> subCategoryCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
-            String keyword = "%"+ filter.getKeyword().toLowerCase().trim() +"%";
+            String keyword = STR."%\{filter.getKeyword().toLowerCase().trim()}%";
             Predicate keywordFilter = criteriaBuilder.or(
                    criteriaBuilder.like(root.get("name"), keyword),
                     criteriaBuilder.like(productSubCategoryJoin.get("name"), keyword),

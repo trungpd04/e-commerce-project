@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final RsaKeyProperties rsaKeyProperties;
@@ -44,6 +46,7 @@ public class SecurityConfig {
                 String.format("%s/categories/**",API_PREFIX),
                 String.format("%s/sub_categories/**",API_PREFIX),
                 String.format("%s/ratings/**", API_PREFIX),
+                String.format("%s/users/oauth2/userinfo", API_PREFIX),
                 String.format("%s/api-docs",API_PREFIX),
                 String.format("%s/api-docs/**", API_PREFIX),
                 String.format("%s/swagger-resources",API_PREFIX),

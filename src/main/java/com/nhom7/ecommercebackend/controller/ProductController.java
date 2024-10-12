@@ -72,7 +72,7 @@ public class ProductController {
         int pageNo = productResponses.getNumber();
         int pageSize = productResponses.getSize();
         int totalPages = productResponses.getTotalPages();
-        int totalElements = productResponses.getNumberOfElements();
+        long totalElements = productResponses.getTotalElements();
         boolean last = productResponses.isLast();
         ProductListResponse productListResponse = ProductListResponse
                 .builder()
@@ -124,7 +124,7 @@ public class ProductController {
                 .build();
     }
     @PostMapping(value = "/uploads/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse uploadImage(
             @PathVariable("productId") Long productId,

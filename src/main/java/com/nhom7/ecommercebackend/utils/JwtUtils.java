@@ -1,13 +1,18 @@
 package com.nhom7.ecommercebackend.utils;
 
 import com.nhom7.ecommercebackend.configuration.RsaKeyProperties;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import com.nhom7.ecommercebackend.exception.TokenException;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.InvalidatedToken;
+import com.nhom7.ecommercebackend.model.Role;
 import com.nhom7.ecommercebackend.model.User;
+import com.nhom7.ecommercebackend.model.UserOauth2Info;
 import com.nhom7.ecommercebackend.repository.InvalidatedTokenRepository;
-import com.nhom7.ecommercebackend.repository.OutboundLoginClient;
+import com.nhom7.ecommercebackend.repository.RoleRepository;
+import com.nhom7.ecommercebackend.repository.outbound.OutboundLoginClient;
 import com.nhom7.ecommercebackend.repository.UserRepository;
+import com.nhom7.ecommercebackend.repository.outbound.OutboundUserInfoClient;
 import com.nhom7.ecommercebackend.request.login.ExchangeTokenRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
@@ -40,6 +45,9 @@ public class JwtUtils {
     private final InvalidatedTokenRepository tokenRepository;
     private final UserRepository userRepository;
     private final OutboundLoginClient outboundLoginClient;
+    private final OutboundUserInfoClient outboundUserInfoClient;
+    private final RoleRepository roleRepository;
+
     @Value("${jwt.expiration_time}")
     protected Long EXPIRATION_TIME;
 
@@ -136,11 +144,11 @@ public class JwtUtils {
         boolean verified = signedJWT.verify(jwsVerifier);
 
         if(!( verified && expireDate.after(new Date()))) {
-            throw new TokenException(ErrorCode.INVALID_TOKEN);
+            throw new TokenException(MessageKeys.INVALID_TOKEN.toString());
         }
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
         if(tokenRepository.existsById(jwtId)) {
-            throw new TokenException(ErrorCode.UNAUTHENTICATED);
+            throw new TokenException(MessageKeys.UNAUTHENTICATED.toString());
         }
         return signedJWT;
     }
@@ -152,7 +160,21 @@ public class JwtUtils {
                 .redirectUri(REDIRECT_URI)
                 .code(code)
                 .build();
-        return outboundLoginClient.exchangeToken(request);
+        ExchangeTokenResponse exchangeTokenResponse = outboundLoginClient
+                .exchangeToken(request);
+        Role role = roleRepository.findByName(Role.USER);
+        UserOauth2Info userOauth2Info = getOauth2UserInfo("json", exchangeTokenResponse.getAccessToken());
+        User user = userRepository.findByEmail(userOauth2Info.getEmail())
+                .orElseGet(() -> userRepository.save(User.builder()
+                                .email(userOauth2Info.getEmail())
+                                .fullName(STR."\{userOauth2Info.getFamilyName()} \{userOauth2Info.getGivenName()}")
+                                .profileImage(userOauth2Info.getPicture())
+                                .active(true)
+                                .role(role)
+                        .build()));
+        String token = generateToken(user);
+
+        return ExchangeTokenResponse.builder().accessToken(token).build();
     }
     private String getSubject(User user) {
         if(user.getEmail() != null) {
@@ -170,6 +192,9 @@ public class JwtUtils {
         if(existingUserWithPhoneNumber.isPresent()) {
             return existingUserWithPhoneNumber.get();
         }
-        throw new DataNotFoundException(ErrorCode.USER_NOT_EXIST);
+        throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
+    }
+    public UserOauth2Info getOauth2UserInfo(String alt, String accessToken) {
+        return outboundUserInfoClient.userInfo(alt, accessToken);
     }
 }

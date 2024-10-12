@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.controller;
 
+import com.nhom7.ecommercebackend.exception.PasswordCreationException;
 import com.nhom7.ecommercebackend.exception.PermissionDenyException;
 import com.nhom7.ecommercebackend.exception.TokenException;
 import com.nhom7.ecommercebackend.model.User;
@@ -7,12 +8,15 @@ import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
 import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
+import com.nhom7.ecommercebackend.request.user.PasswordCreationRequest;
 import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
 import com.nhom7.ecommercebackend.response.login.ExchangeTokenResponse;
 import com.nhom7.ecommercebackend.response.order.OrderListResponse;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
+import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
+import com.nhom7.ecommercebackend.response.user.UserListResponse;
 import com.nhom7.ecommercebackend.service.AuthenticateService;
 import com.nhom7.ecommercebackend.service.UserService;
 import com.nimbusds.jose.JOSEException;
@@ -35,7 +39,7 @@ public class UserController {
     private final AuthenticateService authenticateService;
     private final UserService userService;
     @PostMapping("")
-    public ApiResponse registerUser(@RequestBody UserDTO userDTO) throws PermissionDenyException {
+    public ApiResponse registerUser(@RequestBody UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         User newUser = userService.register(userDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
@@ -54,7 +58,7 @@ public class UserController {
                 .data(updatedUser)
                 .build();
     }
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{userId}")
     public ApiResponse getUserById(@PathVariable("userId") Long userId) {
@@ -62,7 +66,7 @@ public class UserController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Update User successfully!")
-                .data(existinUser)
+                .data(UserDetailResponse.fromUser(existinUser))
                 .build();
     }
     @DeleteMapping("/{userId}")
@@ -145,6 +149,61 @@ public class UserController {
                 .status(HTTP_OK)
                 .message("Get all orders successfully!")
                 .data(orderListResponse)
+                .build();
+    }
+    @GetMapping("/oauth2/userinfo")
+    public ApiResponse getOauth2UserInfo(
+            @RequestParam("alt") String alt,
+            @RequestParam("access_token") String accessToken
+            ) {
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get Oauth2 User Info successfully!")
+                .data(authenticateService.getOauth2UserInfo(alt, accessToken))
+                .build();
+    }
+    @GetMapping("/detail")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-token")
+    public ApiResponse getUserDetail() {
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get User's detail successfully!")
+                .data(userService.getUserDetail())
+                .build();
+    }
+    @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-token")
+    public ApiResponse getAllUser(
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+            @RequestParam(value = "page", required = false, defaultValue = "0") int page
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<UserDetailResponse> userDetailResponses = userService.getAllUsers(keyword, pageRequest);
+        UserListResponse userListResponse = UserListResponse.builder()
+                .userDetailResponses(userDetailResponses.getContent())
+                .pageNo(page)
+                .pageSize(size)
+                .totalPages(userDetailResponses.getTotalPages())
+                .totalElements(userDetailResponses.getTotalElements())
+                .last(userDetailResponses.isLast())
+                .build();
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get all user successfully!")
+                .data(userListResponse)
+                .build();
+    }
+    @PostMapping("/createPassword")
+    @SecurityRequirement(name = "bearer-token")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse createPassword(@RequestBody PasswordCreationRequest request) throws PasswordCreationException {
+        userService.createPassword(request);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Create password successfully!")
                 .build();
     }
 }

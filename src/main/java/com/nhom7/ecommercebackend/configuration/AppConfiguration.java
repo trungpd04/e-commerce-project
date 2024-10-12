@@ -1,15 +1,12 @@
 package com.nhom7.ecommercebackend.configuration;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
+import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.repository.UserRepository;
-import com.nhom7.ecommercebackend.utils.ErrorCode;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import com.nhom7.ecommercebackend.request.order.OrderDTO;
+import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -21,10 +18,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 import java.util.Optional;
 
@@ -39,7 +32,11 @@ public class AppConfiguration {
     }
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.createTypeMap(User.class, UserDetailResponse.class);
+        modelMapper.createTypeMap(OrderDTO.class, Order.class)
+                .addMappings(map -> map.skip(Order::setId));
+        return modelMapper;
     }
     @Bean
     public UserDetailsService userDetailsService() {
@@ -52,7 +49,7 @@ public class AppConfiguration {
             if(existingPhoneNumberUser.isPresent()) {
                 return existingPhoneNumberUser.get();
             }
-            throw new DataNotFoundException(ErrorCode.USER_NOT_EXIST);
+            throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
         };
     }
     @Bean
