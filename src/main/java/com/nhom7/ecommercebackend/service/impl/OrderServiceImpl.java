@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -79,13 +80,13 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public Order findOrderById(Long orderId) {
+    public Order findOrderById(UUID orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.ORDER_NOT_FOUND.toString()));
     }
 
     @Override
-    public void deleteOrder(Long orderId) {
+    public void deleteOrder(UUID orderId) {
         Order existingOrder = findOrderById(orderId);
         existingOrder.setActive(false);
         orderRepository.save(existingOrder);

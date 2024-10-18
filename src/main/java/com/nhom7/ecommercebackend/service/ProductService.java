@@ -18,4 +18,5 @@ public interface ProductService {
     Product updateProduct(Long productId, ProductDTO productDTO);
     ProductImage createProductImage(Long productId, ProductImageDTO productImageDTO) throws InvalidParamException;
     Page<ProductResponse> getAllProductFilter(Filter filter, PageRequest pageRequest);
+    String getProductAttribute();
 }

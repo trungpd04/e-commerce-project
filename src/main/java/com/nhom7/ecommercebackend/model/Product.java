@@ -34,19 +34,18 @@ public class Product extends BaseEntity {
     @ManyToMany
     private List<SubCategory> subcategory;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<ProductAttributeValue> attributeValues;
+
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     private List<ProductImage> productImages;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private ProductDetail productDetail;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Rating> ratings;
     @PrePersist
     private void setActive() {
         setActive(true);
     }
+
 }
 

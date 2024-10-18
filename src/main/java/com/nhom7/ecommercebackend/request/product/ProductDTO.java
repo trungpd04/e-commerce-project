@@ -2,7 +2,6 @@ package com.nhom7.ecommercebackend.request.product;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.nhom7.ecommercebackend.request.product.ProductDetailDTO;
 import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
@@ -28,8 +27,7 @@ public class ProductDTO {
 
     private List<Long> subcategory;
 
-    @JsonProperty("product_detail")
+    @JsonProperty("product_attributes")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private ProductDetailDTO productDetailDTO;
+    private List<ProductAttributeValueDTO> attributeValues;
 }
-
