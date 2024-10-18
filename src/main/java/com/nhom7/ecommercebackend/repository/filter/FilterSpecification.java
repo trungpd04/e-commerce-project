@@ -1,108 +1,118 @@
 package com.nhom7.ecommercebackend.repository.filter;
 
-import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.ProductDetail;
-import com.nhom7.ecommercebackend.model.Rating;
-import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.model.*;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 
 public class FilterSpecification<Product> implements Specification<Product> {
     private final Filter filter;
+
     public FilterSpecification(Filter filter) {
         this.filter = filter;
     }
+
     @Override
     public Predicate toPredicate(Root<Product> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
-        if(filter != null && filter.getSubcategoryId() != null ) {
+        if (!filter.getAttributeValueMap().isEmpty()) {
             Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-            Predicate subcategoryPredicate = criteriaBuilder.equal(
-              productSubCategoryJoin.get("id"), filter.getSubcategoryId()
-            );
-            predicates.add(subcategoryPredicate);
-        }
-        if(filter != null && filter.getCategoryId() != null) {
-            Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-            Join<Product, Category> subCategoryCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
-            Predicate subcategoryCategory = criteriaBuilder. equal(
-                    subCategoryCategoryJoin.get("id"), filter.getCategoryId()
-            );
-            predicates.add(subcategoryCategory);
-        }
-        if(filter != null && filter.getKeyword() != null) {
-            Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-            Join<Product, Category> subCategoryCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
-            String keyword = STR."%\{filter.getKeyword().toLowerCase().trim()}%";
-            Predicate keywordFilter = criteriaBuilder.or(
-                   criteriaBuilder.like(root.get("name"), keyword),
-                    criteriaBuilder.like(productSubCategoryJoin.get("name"), keyword),
-                    criteriaBuilder.like(subCategoryCategoryJoin.get("name"), keyword)
-            );
-            predicates.add(keywordFilter);
-        }
-        Join<Product, ProductDetail> productDetailJoin = root.join("productDetail", JoinType.INNER);
-        if(filter != null && filter.getRam() != null) {
-            String[] ramRange = filter.getRam().split("-");
-            int ramMin = Integer.parseInt(ramRange[0]);
-            int ramMax = Integer.parseInt(ramRange[1]);
-            Predicate ramPredicate = criteriaBuilder.or(
-                    criteriaBuilder.equal(productDetailJoin.get("ram"), ramMin),
-                    criteriaBuilder.equal(productDetailJoin.get("ram"), ramMax),
-                    criteriaBuilder.between(productDetailJoin.get("ram"), ramMin, ramMax)
-            );
-            predicates.add(criteriaBuilder.and(criteriaBuilder.conjunction(), ramPredicate));
-        }
-        if(filter != null && filter.getPrice() != null) {
-            String[] priceRange = filter.getPrice().split("-");
-            float minPrice = Float.parseFloat(priceRange[0]);
-            float maxPrice = Float.parseFloat(priceRange[1]);
-            Predicate pricePredicate = criteriaBuilder
-                    .or(
-                            criteriaBuilder.equal(root.get("price"), minPrice),
-                            criteriaBuilder.equal(root.get("price"), maxPrice),
-                            criteriaBuilder.between(root.get("price"), minPrice, maxPrice)
+            Join<Product, Category> productCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
+            for (Map.Entry<String, String> attributeValue : filter.getAttributeValueMap().entrySet()) {
+                if(attributeValue.getKey().equals("page")
+                        || attributeValue.getKey().equals("size")
+                        || attributeValue.getKey().equals("sort_by")
+                        || attributeValue.getKey().equals("sort_dir")
+                ) {
+                    continue;
+                }
+                if (attributeValue.getKey().equals("search") && !attributeValue.getValue().contains("-")) {
+                    String keyword = "%" + attributeValue.getValue().toLowerCase().trim() + "%";
+                    Predicate keywordFilter = criteriaBuilder.or(
+                            criteriaBuilder.like(root.get("name"), keyword),
+                            criteriaBuilder.like(productSubCategoryJoin.get("name"), keyword),
+                            criteriaBuilder.like(productCategoryJoin.get("name"), keyword)
                     );
-            predicates.add(pricePredicate);
-        }
-        if(filter != null && filter.getStorage() != null) {
-            String[] storageRange = filter.getStorage().split("-");
-            int minStorage = Integer.parseInt(storageRange[0]);
-            int maxStorage = Integer.parseInt(storageRange[1]);
-            Predicate storagePredicate = criteriaBuilder
-                    .or(
-                            criteriaBuilder.equal(productDetailJoin.get("storage"), minStorage),
-                            criteriaBuilder.equal(productDetailJoin.get("storage"), maxStorage),
-                            criteriaBuilder.between(productDetailJoin.get("storage"), minStorage, maxStorage)
+                    predicates.add(keywordFilter);
+                }
+                if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
+                    Predicate subcategoryPredicate = criteriaBuilder.equal(
+                            productSubCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
                     );
-            predicates.add(storagePredicate);
-        }
-        if(filter != null && filter.getScreenSize() != null) {
-            String[] screenFilter = filter.getScreenSize().split("-");
-            String operator = screenFilter[0];
-            float screenSize = Float.parseFloat(screenFilter[1]);
-            if(operator.equals("over")) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(productDetailJoin.get("screenSize"), screenSize));
-            }else{
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(productDetailJoin.get("screenSize"), screenSize));
-            }
-        }
-        if(filter != null && filter.getScreenType() != null) {
-            String screenType = filter.getScreenType();
-            predicates.add(criteriaBuilder.equal(productDetailJoin.get("screenType"), screenType));
-        }
-        if(filter != null && filter.getScreenRefreshRate() != null) {
-            int screenSize = Integer.parseInt(filter.getScreenRefreshRate());
-            predicates.add(criteriaBuilder.equal(productDetailJoin.get("screenRefreshRate"), screenSize));
-        }
-        if(filter != null && filter.getRate() != null) {
-            Join<Product, Rating> productRatingJoin = root.join("ratings", JoinType.LEFT);
-            predicates.add(criteriaBuilder.equal(productRatingJoin.get("rate"), filter.getRate()));
+                    predicates.add(subcategoryPredicate);
+                }
+                if (attributeValue.getKey().equals("category_id") && !attributeValue.getValue().contains("-")) {
+                    Predicate subcategoryCategory = criteriaBuilder.equal(
+                            productCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
+                    );
+                    predicates.add(subcategoryCategory);
+                }
+                if(attributeValue.getKey().equals("price") && attributeValue.getValue().contains("-")) {
+                    String[] priceRange = attributeValue.getValue().split("-");
+                    float minPrice = Float.parseFloat(priceRange[0]);
+                    float maxPrice = Float.parseFloat(priceRange[1]);
+                    Predicate pricePredicate = criteriaBuilder
+                            .or(
+                                    criteriaBuilder.equal(root.get("price"), minPrice),
+                                    criteriaBuilder.equal(root.get("price"), maxPrice),
+                                    criteriaBuilder.between(root.get("price"), minPrice, maxPrice)
+                            );
+                    predicates.add(pricePredicate);
+                }
+                if (attributeValue.getKey() != null && !attributeValue.getKey().equals("price")) {
+                    if (attributeValue.getValue().contains("-")) {
+                        String[] range = attributeValue.getValue().split("-");
+                        int min = Integer.parseInt(range[0]);
+                        int max = Integer.parseInt(range[1]);
+                        Join<Product, ProductAttributeValue> productAttributeValueJoin = root.join("attributeValues", JoinType.LEFT);
+                        Join<ProductAttributeValue, ProductAttribute> productAttributeValueProductAttributeJoin = productAttributeValueJoin.join("productAttribute", JoinType.LEFT);
 
+                        String attributeName = attributeValue.getKey();
+                        Predicate attributeNamePredicate = criteriaBuilder.equal(
+                                productAttributeValueProductAttributeJoin.get("name"), attributeName
+                        );
+                        Predicate attributeRangePredicate = criteriaBuilder.or(
+                                criteriaBuilder.equal(productAttributeValueJoin.get("value").as(Integer.class), min),
+                                criteriaBuilder.equal(productAttributeValueJoin.get("value").as(Integer.class), min),
+                                criteriaBuilder.between(productAttributeValueJoin.get("value").as(Integer.class), min, max)
+                        );
+                        Predicate attributeRangePredicateAnd = criteriaBuilder.and(
+                                attributeNamePredicate,
+                                attributeRangePredicate
+                        );
+                        predicates.add(attributeRangePredicateAnd);
+                    } else {
+                        if (!attributeValue.getKey().equals("search")
+                                && !attributeValue.getKey().equals("subcategory_id")
+                                && !attributeValue.getKey().equals("category_id")
+                                && !attributeValue.getValue().contains("-")
+                        ) {
+                            Join<Product, ProductAttributeValue> productAttributeValueJoin = root.join("attributeValues", JoinType.LEFT);
+                            Join<ProductAttributeValue, ProductAttribute> productAttributeValueProductAttributeJoin = productAttributeValueJoin.join("productAttribute", JoinType.LEFT);
+
+                            String attributeName = attributeValue.getKey();
+                            Predicate attributeNamePredicate = criteriaBuilder.equal(
+                                    productAttributeValueProductAttributeJoin.get("name"), attributeName
+                            );
+                            Predicate attributeRangePredicate = criteriaBuilder.and(
+                                    attributeNamePredicate,
+                                    criteriaBuilder.equal(productAttributeValueJoin.get("value"), attributeValue.getValue())
+                            );
+                            predicates.add(attributeRangePredicate);
+                        }
+                    }
+                }
+            }
         }
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }
 }
+
+
+
+
+

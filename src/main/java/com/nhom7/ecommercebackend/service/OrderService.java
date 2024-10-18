@@ -7,10 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface OrderService {
     Order createOrder(OrderDTO orderDTO);
-    Order findOrderById(Long orderId);
-    void deleteOrder(Long orderId); // just soft delete
+    Order findOrderById(UUID orderId);
+    void deleteOrder(UUID orderId); // just soft delete
     Page<OrderResponse> getAllOrder(String keyword, PageRequest pageRequest);
 }

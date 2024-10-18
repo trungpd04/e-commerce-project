@@ -6,6 +6,7 @@ import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.*;
 import com.nhom7.ecommercebackend.repository.filter.Filter;
 import com.nhom7.ecommercebackend.repository.filter.FilterSpecification;
+import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
 import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
 import com.nhom7.ecommercebackend.response.product.ProductResponse;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +31,12 @@ public class ProductServiceImpl implements ProductService {
     private final SubCategoryRepository subCategoryRepository;
     private final ProductImageRepository productImageRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductAttributeValueRepository productAttributeValueRepository;
+    private final ProductAttributeRepository productAttributeRepository;
 
     @Override
     @Transactional
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
-
         if (!productDTO.getName().isBlank() && productRepository.existsByName(productDTO.getName())) {
             throw new DataIntegrityViolationException("Product name already exists!");
         }
@@ -60,38 +63,39 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product updateProduct(Long productId, ProductDTO productDTO) {
-        Product product = productRepository.findProductById(productId)
+        Product existingProduct = productRepository.findProductById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
-        Category category = categoryRepository.findById(productDTO.getCategoryId())
-                .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
         List<SubCategory> subCategories = new ArrayList<>();
         productDTO.getSubcategory().forEach(subCategoryId -> {
             SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
                     .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
             subCategories.add(subCategory);
         });
-        ProductDetail productDetail = ProductDetail.builder()
-                .cpu(productDTO.getProductDetailDTO().getCpu())
-                .ram(productDTO.getProductDetailDTO().getRam())
-                .screenSize(productDTO.getProductDetailDTO().getScreenSize())
-                .screenType(productDTO.getProductDetailDTO().getScreenType())
-                .screenRefreshRate(productDTO.getProductDetailDTO().getScreenRefreshRate())
-                .osName(productDTO.getProductDetailDTO().getOsName())
-                .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
-                .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())
-                .manufacturer(productDTO.getProductDetailDTO().getManufacturer())
-                .color(productDTO.getProductDetailDTO().getColor())
-                .quantity(productDTO.getProductDetailDTO().getQuantity())
-                .designDescription(productDTO.getProductDetailDTO().getDesignDescription())
-                .storage(productDTO.getProductDetailDTO().getStorage())
-                .build();
-        product.setProductDetail(productDetail);
-        product.setName(product.getName());
-        product.setPrice(product.getPrice());
-        product.setThumbnail(product.getThumbnail());
-        product.setDescription(product.getDescription());
-        product.setSubcategory(subCategories);
-        return productRepository.save(product);
+        existingProduct.setName(productDTO.getName());
+        existingProduct.setPrice(productDTO.getPrice());
+        existingProduct.setThumbnail(productDTO.getThumbnail());
+        existingProduct.setDescription(productDTO.getDescription());
+        existingProduct.setSubcategory(subCategories);
+        if (productDTO.getAttributeValues() != null) {
+            for (ProductAttributeValueDTO productAttributeValueDTO : productDTO.getAttributeValues()) {
+                String attributeName = productAttributeValueDTO.getAttributeName();
+                String attributeValue = productAttributeValueDTO.getValue();
+
+                ProductAttribute productAttribute = productAttributeRepository.findByName(attributeName)
+                        .orElseThrow(() -> new DataNotFoundException("Attribute not found with name: " + attributeName));
+
+                ProductAttributeValue productAttributeValue = productAttributeValueRepository
+                        .findByProductAndProductAttribute(existingProduct, productAttribute)
+                        .orElse(new ProductAttributeValue());
+
+                productAttributeValue.setProduct(existingProduct);
+                productAttributeValue.setProductAttribute(productAttribute);
+                productAttributeValue.setValue(attributeValue);
+
+                productAttributeValueRepository.save(productAttributeValue);
+            }
+        }
+        return productRepository.save(existingProduct);
     }
 
     @Override
@@ -122,35 +126,51 @@ public class ProductServiceImpl implements ProductService {
         return productPage.map(ProductResponse::fromProduct);
     }
 
+    @Override
+    public String getProductAttribute() {
+        StringJoiner stringJoiner = new StringJoiner(", ");
+        List<ProductAttribute> productAttributes = productAttributeRepository.findAll();
+        for(ProductAttribute productAttribute : productAttributes) {
+            stringJoiner.add(productAttribute.getName());
+        }
+        return stringJoiner.toString();
+    }
+
     private Product buildProduct(ProductDTO productDTO, Long... productId) {
+        // Retrieve and populate subcategories
         List<SubCategory> subCategories = new ArrayList<>();
         productDTO.getSubcategory().forEach(subCategoryId -> {
             SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
                     .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
             subCategories.add(subCategory);
         });
-        ProductDetail productDetail = ProductDetail.builder()
-                .cpu(productDTO.getProductDetailDTO().getCpu())
-                .ram(productDTO.getProductDetailDTO().getRam())
-                .screenSize(productDTO.getProductDetailDTO().getScreenSize())
-                .screenType(productDTO.getProductDetailDTO().getScreenType())
-                .screenRefreshRate(productDTO.getProductDetailDTO().getScreenRefreshRate())
-                .osName(productDTO.getProductDetailDTO().getOsName())
-                .batteryCapacity(productDTO.getProductDetailDTO().getBatteryCapacity())
-                .guaranteeMonth(productDTO.getProductDetailDTO().getGuaranteeMonth())
-                .manufacturer(productDTO.getProductDetailDTO().getManufacturer())
-                .color(productDTO.getProductDetailDTO().getColor())
-                .quantity(productDTO.getProductDetailDTO().getQuantity())
-                .designDescription(productDTO.getProductDetailDTO().getDesignDescription())
-                .build();
-        return Product.builder()
+
+
+        // Build and return the Product entity
+        Product newProduct = Product.builder()
                 .name(productDTO.getName())
                 .description(productDTO.getDescription())
-                .price(productDTO.getPrice())
                 .thumbnail(productDTO.getThumbnail())
+                .price(productDTO.getPrice())
                 .subcategory(subCategories)
-                .productDetail(productDetail)
                 .build();
-    }
+        // Prepare to map the attributes from the DTO
+        List<ProductAttributeValue> attributeValues = new ArrayList<>();
 
+        productDTO.getAttributeValues().forEach(attributeValueDTO -> {
+            // Find the corresponding attribute by name
+            ProductAttribute attribute = productAttributeRepository.findByName(attributeValueDTO.getAttributeName())
+                    .orElseThrow(() -> new DataNotFoundException("Attribute not found: " + attributeValueDTO.getAttributeName()));
+
+            // Create and add ProductAttributeValue entity
+            ProductAttributeValue attributeValue = ProductAttributeValue.builder()
+                    .productAttribute(attribute)
+                    .value(attributeValueDTO.getValue())
+                    .build();
+            attributeValues.add(attributeValue);
+            attributeValue.setProduct(newProduct);
+        });
+        newProduct.setAttributeValues(attributeValues);
+        return newProduct;
+    }
 }
