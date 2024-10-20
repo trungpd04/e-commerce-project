@@ -7,6 +7,7 @@ import com.nhom7.ecommercebackend.repository.ProductAttributeRepository;
 import com.nhom7.ecommercebackend.repository.ProductAttributeValueRepository;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.service.ProductAttributeService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -14,7 +15,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +23,7 @@ public class ProductAttributeServiceImpl implements ProductAttributeService {
     private final ProductAttributeRepository productAttributeRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
     @Override
+    @Transactional
     public ProductAttribute createProductAttribute(AttributeDTO attributeDTO) {
         if(productAttributeRepository.existsByName(attributeDTO.getName())) {
             throw new DataIntegrityViolationException("Attribute name has already exist!");
@@ -43,6 +44,7 @@ public class ProductAttributeServiceImpl implements ProductAttributeService {
     }
 
     @Override
+    @Transactional
     public ProductAttribute updateAttributeById(int attributeId, AttributeDTO attributeDTO) {
         ProductAttribute productAttribute = productAttributeRepository.findById(attributeId)
                 .orElseThrow(() -> new DataNotFoundException("Product Attribute not exist!"));
@@ -51,6 +53,7 @@ public class ProductAttributeServiceImpl implements ProductAttributeService {
     }
 
     @Override
+    @Transactional
     public void deleteAttribute(int attributeId) {
         ProductAttribute productAttribute = productAttributeRepository.findById(attributeId)
                 .orElseThrow(() -> new DataNotFoundException("Product Attribute not exist!"));

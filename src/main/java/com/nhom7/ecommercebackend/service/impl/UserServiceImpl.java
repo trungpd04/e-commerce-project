@@ -1,20 +1,20 @@
 package com.nhom7.ecommercebackend.service.impl;
 
-import com.nhom7.ecommercebackend.exception.DataNotFoundException;
-import com.nhom7.ecommercebackend.exception.PasswordCreationException;
-import com.nhom7.ecommercebackend.exception.PermissionDenyException;
+import com.nhom7.ecommercebackend.exception.*;
 import com.nhom7.ecommercebackend.model.Order;
+import com.nhom7.ecommercebackend.model.ResetPasswordToken;
 import com.nhom7.ecommercebackend.model.Role;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.repository.OrderRepository;
+import com.nhom7.ecommercebackend.repository.ResetPasswordRepository;
 import com.nhom7.ecommercebackend.repository.RoleRepository;
 import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.user.PasswordCreationRequest;
+import com.nhom7.ecommercebackend.request.user.ResetPasswordDTO;
 import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.service.UserService;
-import com.nhom7.ecommercebackend.exception.MessageKeys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -29,8 +29,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Objects;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +43,9 @@ public class UserServiceImpl implements UserService {
     private final OrderRepository orderRepository;
     private final UserDetailsService userDetailsService;
     private final ModelMapper modelMapper;
-
+    private final ResetPasswordRepository resetPasswordRepository;
     @Override
     @Transactional
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         if (!userDTO.getEmail().isBlank() && userRepository.existsByEmail(userDTO.getEmail())) {
             throw new DataIntegrityViolationException("This email has already exist!");
@@ -158,6 +158,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void createPassword(PasswordCreationRequest request) throws PasswordCreationException {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         String userName = securityContext.getAuthentication().getName();
@@ -173,5 +174,44 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(request.getRetypePassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public String updateResetPasswordToken(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
+        Optional<ResetPasswordToken> existResetToken = resetPasswordRepository
+                .findByUser(user);
+        existResetToken.ifPresent(resetPasswordRepository::delete);
+        ResetPasswordToken resetPasswordToken = ResetPasswordToken.builder()
+                .expiryDate(Date.from(Instant.now().plus(ResetPasswordToken.EXPIRY_TIME, ChronoUnit.SECONDS)))
+                .token(UUID.randomUUID().toString())
+                .user(user)
+                .build();
+        return resetPasswordRepository.save(resetPasswordToken).getToken();
+    }
+
+    @Override
+    public User getByResetPasswordToken(String token) throws TokenException {
+        ResetPasswordToken resetPasswordToken = resetPasswordRepository.findByToken(token)
+                .orElseThrow(() -> new TokenException("Invalid Token"));
+        return resetPasswordToken.getUser();
+    }
+
+    @Override
+    public void updatePassword(User user, ResetPasswordDTO dto) throws TokenException, PasswordCreationException {
+        ResetPasswordToken resetPasswordToken = resetPasswordRepository.findByUser(user)
+                .orElseThrow(() -> new TokenException("Invalid Token"));
+        if(!resetPasswordToken.getExpiryDate().after(new Date())) {
+            resetPasswordRepository.delete(resetPasswordToken);
+            throw new TokenException("Invalid Token");
+        }
+        if(!dto.getPassword().equals(dto.getRetypePassword())) {
+            throw new PasswordCreationException("Retype Password does not match password!");
+        }
+        String newPassword = passwordEncoder.encode(dto.getRetypePassword());
+        user.setPassword(newPassword);
+        userRepository.save(user);
+        resetPasswordRepository.delete(resetPasswordToken);
     }
 }

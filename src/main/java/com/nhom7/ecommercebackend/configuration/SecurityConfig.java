@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,12 +26,17 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
+@EnableWebSecurity(debug = true)
 public class SecurityConfig {
 
     private final RsaKeyProperties rsaKeyProperties;
@@ -65,11 +71,14 @@ public class SecurityConfig {
                 String.format("%s/users/introspect", API_PREFIX),
                 String.format("%s/users/refresh", API_PREFIX),
                 String.format("%s/users/logout", API_PREFIX),
-                String.format("%s/users/outbound/login", API_PREFIX)
+                String.format("%s/users/outbound/login", API_PREFIX),
+                String.format("%s/users/forgot_password", API_PREFIX),
+                String.format("%s/users/reset_password", API_PREFIX)
         };
         httpSecurity.authorizeHttpRequests(config ->
                 config.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT_POST).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINT_GET).permitAll()
+//                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/users/reset_password").permitAll()
                         .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
@@ -91,7 +100,6 @@ public class SecurityConfig {
 
         return jwtAuthenticationConverter;
     }
-
     @Bean
     public JwtEncoder jwtEncoder() {
         JWK jwk = new RSAKey
