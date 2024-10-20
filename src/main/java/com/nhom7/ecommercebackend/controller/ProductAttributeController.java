@@ -4,6 +4,7 @@ import com.nhom7.ecommercebackend.model.ProductAttribute;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.service.ProductAttributeService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ public class ProductAttributeController {
 
     @PostMapping("")
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse createProductAttribute(@RequestBody AttributeDTO attributeDTO) {
         ProductAttribute newProductAttribute = attributeService.createProductAttribute(attributeDTO);
         return ApiResponse.builder()
@@ -32,6 +34,7 @@ public class ProductAttributeController {
 
     @GetMapping("")
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse getAllProductAttribute(
             @RequestParam(value = "size", defaultValue = "10", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
@@ -45,6 +48,7 @@ public class ProductAttributeController {
                 .build();
     }
     @GetMapping("/{attributeId}")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse getAttributeById(@PathVariable("attributeId") int attributeId) {
         ProductAttribute productAttribute = attributeService.getProductAttribute(attributeId);
@@ -56,6 +60,7 @@ public class ProductAttributeController {
     }
     @PutMapping("/{attributeId}")
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse updateAttributeById(
             @PathVariable("attributeId") int attributeId,
             @RequestBody AttributeDTO attributeDTO) {
@@ -68,6 +73,7 @@ public class ProductAttributeController {
     }
     @DeleteMapping("/{attributeId}")
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse deleteProductAttributeById(@PathVariable("attributeId") int attributeId) {
         attributeService.deleteAttribute(attributeId);
         return ApiResponse.builder()

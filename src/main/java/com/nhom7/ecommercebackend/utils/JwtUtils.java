@@ -167,7 +167,7 @@ public class JwtUtils {
         User user = userRepository.findByEmail(userOauth2Info.getEmail())
                 .orElseGet(() -> userRepository.save(User.builder()
                                 .email(userOauth2Info.getEmail())
-                                .fullName(STR."\{userOauth2Info.getFamilyName()} \{userOauth2Info.getGivenName()}")
+                                .fullName(userOauth2Info.getFamilyName() + " " + userOauth2Info.getGivenName())
                                 .profileImage(userOauth2Info.getPicture())
                                 .active(true)
                                 .role(role)

@@ -9,6 +9,7 @@ import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
 import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
 import com.nhom7.ecommercebackend.request.user.PasswordCreationRequest;
+import com.nhom7.ecommercebackend.request.user.ResetPasswordDTO;
 import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
@@ -18,17 +19,23 @@ import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.response.user.UserListResponse;
 import com.nhom7.ecommercebackend.service.AuthenticateService;
+import com.nhom7.ecommercebackend.service.EmailService;
 import com.nhom7.ecommercebackend.service.UserService;
 import com.nimbusds.jose.JOSEException;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 @RestController
@@ -38,7 +45,11 @@ public class UserController {
 
     private final AuthenticateService authenticateService;
     private final UserService userService;
-    @PostMapping("")
+    private final EmailService emailService;
+
+    @Value("${app.cors.allowedOrigins}")
+    private String ALLOW_ORIGIN;
+    @PostMapping("/register")
     public ApiResponse registerUser(@RequestBody UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         User newUser = userService.register(userDTO);
         return ApiResponse.builder()
@@ -204,6 +215,36 @@ public class UserController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Create password successfully!")
+                .build();
+    }
+    @PostMapping("/forgot_password")
+    public ApiResponse forgotPassword(@RequestParam(value = "email") String email) throws MessagingException, UnsupportedEncodingException {
+        String token = userService.updateResetPasswordToken(email);
+        String link = ALLOW_ORIGIN + "/reset_password?token=" + token;
+        System.out.println(link);
+        emailService.sendEmail(email, link);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Send reset password email successfully!")
+                .build();
+    }
+    @PostMapping("/reset_password")
+    public ApiResponse resetPassword(
+            @RequestParam(value = "token") String token,
+            @RequestBody ResetPasswordDTO dto
+            ) throws TokenException {
+        User existingUser = userService.getByResetPasswordToken(token);
+        try {
+            userService.updatePassword(existingUser, dto);
+        } catch (TokenException | PasswordCreationException e) {
+            return ApiResponse.builder()
+                    .status(HTTP_BAD_REQUEST)
+                    .message(e.getMessage())
+                    .build();
+        }
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Reset Password Successfully!")
                 .build();
     }
 }

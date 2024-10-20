@@ -22,7 +22,6 @@ import springfox.documentation.spring.web.plugins.Docket;
         ),
         servers = {
                 @Server(url = "http://localhost:8080", description = "Local Development Server")
-//                @Server(url = "http://45.117.179.16:8088", description = "Production Server"),
         }
 )
 
@@ -35,14 +34,4 @@ import springfox.documentation.spring.web.plugins.Docket;
 )
 @Configuration
 public class SwaggerConfig {
-//        @Value("${api.prefix}")
-//        private static String API_PREFIX;
-//        @Bean
-//        public Docket api() {
-//                return new Docket(DocumentationType.SWAGGER_2)
-//                        .select()
-//                        .apis(RequestHandlerSelectors.any())
-//                        .paths(PathSelectors.ant("/api/v1/**"))
-//                        .build();
-//        }
 }
