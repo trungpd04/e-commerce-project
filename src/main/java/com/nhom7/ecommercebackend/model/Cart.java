@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -25,9 +26,34 @@ public class Cart {
     private User user;
 
     @JsonProperty("total_money")
-    private Float totalMoney;
+    private BigDecimal totalMoney;
 
-    @OneToMany(mappedBy = "cart", orphanRemoval = true)
+    @OneToMany(mappedBy = "cart")
     private List<CartItem> cartItems;
 
+    public void addItem(CartItem item) {
+        this.cartItems.add(item);
+        item.setCart(this);
+        updateTotalAmountAndNumberOfProducts();
+    }
+    public void removeItem(CartItem item) {
+        this.cartItems.remove(item);
+        item.setCart(null);
+        updateTotalAmountAndNumberOfProducts();
+    }
+
+    public void updateTotalAmountAndNumberOfProducts() {
+        // cần sửa vì chưa đúng logic
+        this.numberOfProducts = 0;
+        for (CartItem item : cartItems) {
+            this.numberOfProducts = this.numberOfProducts + item.getQuantity();
+        }
+        this.totalMoney = cartItems.stream().map(item -> {
+            BigDecimal unitPrice = item.getUnitPrice();
+            if (unitPrice == null) {
+                return  BigDecimal.ZERO;
+            }
+            return unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

@@ -4,6 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum MessageKeys {
+    CART_EMPTY("Empty Cart!"),
+    CART_ITEM_NOT_FOUND("Cart Item does not exist!"),
+    PRODUCT_NOT_FOUND("Product does not exist!"),
     TOKEN_EXPIRED("Token has expired!"),
     INVALID_TOKEN("Invalid token!"),
     USER_NOT_EXIST("User does not exist!"),

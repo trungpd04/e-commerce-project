@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Component
@@ -85,7 +86,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("mobile_design_description", faker.lorem().sentence()));
             attributeValues.add(createAttributeValue("mobile_os", generateRandomOs()));
             attributeValues.add(createAttributeValue("mobile_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("mobile_quantity", String.valueOf(random.nextInt(100) + 1)));
             attributeValues.add(createAttributeValue("mobile_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
 
         } else {
@@ -100,7 +100,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("laptop_design_description", faker.lorem().sentence()));
             attributeValues.add(createAttributeValue("laptop_os", generateRandomOs()));
             attributeValues.add(createAttributeValue("laptop_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("laptop_quantity", String.valueOf(random.nextInt(100) + 1)));
             attributeValues.add(createAttributeValue("laptop_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
         }
 
@@ -108,7 +107,8 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         return ProductDTO.builder()
                 .name(productName)
                 .description(faker.lorem().sentence())
-                .price(Float.parseFloat(faker.commerce().price(1000.0, 3000.0)))
+                .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000.0, 3000.0))))
+                .quantity(random.nextLong(10))
                 .thumbnail(null)
                 .categoryId(categoryId)
                 .subcategory(subcategoryIds) // Associate with the selected subcategories

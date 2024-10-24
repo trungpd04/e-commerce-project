@@ -1,7 +1,6 @@
 package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.Cart;
-import com.nhom7.ecommercebackend.request.cart.CartDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.cart.CartResponse;
 import com.nhom7.ecommercebackend.service.CartService;
@@ -20,20 +19,23 @@ public class CartController {
 
     private final CartService cartService;
 
-    @PostMapping("")
+    @PutMapping("")
     @PreAuthorize("hasRole('USER')")
-    public ApiResponse createCart(@RequestBody CartDTO cartDTO) {
-        Cart newCart = cartService.createCart(cartDTO);
+    public ApiResponse updateCart(
+            @RequestParam(name = "product_id") Long productId,
+            @RequestParam(name = "quantity") int quantity
+    ) {
+        Cart existingCart = cartService.updateQuantity(productId, quantity);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Create cart successfully!")
-                .data(toCartDTO(newCart))
+                .message("Update cart's item quantity successfully!")
+                .data(CartResponse.fromCart(existingCart))
                 .build();
     }
-    @GetMapping("/{userId}")
+    @GetMapping("/my-cart")
     @PreAuthorize("hasRole('USER')")
-    public ApiResponse getCartByUserId(@PathVariable("userId") Long userId) {
-        Cart cart = cartService.getCardByUserId(userId);
+    public ApiResponse getCartByUserId() {
+        Cart cart = cartService.getMyCart();
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get cart by user id successfully!")
@@ -41,46 +43,34 @@ public class CartController {
                 .build();
     }
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("/{cartId}/items/{productId}")
+    @PostMapping("/items/{productId}")
     public ApiResponse addToCart(
-            @PathVariable("cartId") Long cartId,
             @PathVariable("productId") Long productId
     ) {
-        Cart cart = cartService.addToCart(productId, cartId);
+        Cart cart = cartService.addToCart(productId);
         return ApiResponse.builder()
                 .message("Add item to card successfully!")
                 .status(HTTP_OK)
                 .data(CartResponse.fromCart(cart))
                 .build();
     }
-    @DeleteMapping("/{userId}")
-    @PreAuthorize("hasRole('USER')")
-    public ApiResponse deleteCartByUserId(
-            @PathVariable("userId") Long userId
-    ) {
-        cartService.deleteCartByUserId(userId);
-        return ApiResponse.builder()
-                .message("Delete User's cart successfully!")
-                .status(HTTP_OK)
-                .build();
-    }
-    @DeleteMapping("/{cartId}/items/{productId}")
+    @DeleteMapping("/items/{productId}")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse removeItem(
-            @PathVariable("cartId") Long cartId,
             @PathVariable("productId") Long productId
     ) {
-        Cart cart = cartService.removeItem(productId, cartId);
-        return ApiResponse.builder()
-                .message("Add item to card successfully!")
-                .status(HTTP_OK)
-                .data(CartResponse.fromCart(cart))
-                .build();
-    }
-    private CartDTO toCartDTO(Cart cart) {
-        return CartDTO.builder()
-                .userId(cart.getUser().getId())
-                .numberOfProducts(cart.getNumberOfProducts())
-                .build();
+        Cart cart = cartService.removeItem(productId);
+        if(cart == null) {
+            return ApiResponse.builder()
+                    .message("Empty Cart!")
+                    .status(HTTP_OK)
+                    .build();
+        }else{
+            return ApiResponse.builder()
+                    .message("Remove cart's item successfully!")
+                    .status(HTTP_OK)
+                    .data(CartResponse.fromCart(cart))
+                    .build();
+        }
     }
 }

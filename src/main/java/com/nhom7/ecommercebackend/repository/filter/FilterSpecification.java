@@ -35,7 +35,8 @@ public class FilterSpecification<Product> implements Specification<Product> {
                     Predicate keywordFilter = criteriaBuilder.or(
                             criteriaBuilder.like(root.get("name"), keyword),
                             criteriaBuilder.like(productSubCategoryJoin.get("name"), keyword),
-                            criteriaBuilder.like(productCategoryJoin.get("name"), keyword)
+                            criteriaBuilder.like(productCategoryJoin.get("name"), keyword),
+                            criteriaBuilder.like(root.get("description"), keyword)
                     );
                     predicates.add(keywordFilter);
                 }

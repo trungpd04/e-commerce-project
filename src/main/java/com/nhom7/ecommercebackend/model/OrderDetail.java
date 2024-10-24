@@ -3,6 +3,8 @@ package com.nhom7.ecommercebackend.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "order_details")
 @Getter
@@ -28,7 +30,7 @@ public class OrderDetail {
     private int numberOfProducts;
 
     @Column(name = "total_money", nullable = false)
-    private Float totalMoney;
+    private BigDecimal totalMoney;
 
 
 }
