@@ -1,9 +1,18 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
+import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.ProductAttribute;
+import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
+import com.nhom7.ecommercebackend.service.CategoryService;
+import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
+import com.nhom7.ecommercebackend.service.SubCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -16,6 +25,35 @@ import java.util.*;
 public class FakeProductDataSeeder implements CommandLineRunner {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
+    private final SubCategoryService subCategoryService;
+    private final ProductAttributeService productAttributeService;
+    private final List<String> categoryName = Arrays.asList("Điện thoại", "Laptop");
+    private final List<String> subCategoryName = Arrays.asList("Iphone", "Samsung", "Lenovo", "Asus");
+    private final List<String> attributes = Arrays.asList(
+            "mobile_ram",
+            "mobile_storage",
+            "mobile_screen_type",
+            "mobile_screen_size",
+            "mobile_screen_refresh_rate",
+            "mobile_battery_capacity",
+            "mobile_color",
+            "mobile_design_description",
+            "mobile_os",
+            "mobile_manufacturer",
+            "mobile_guarantee_month",
+            "laptop_ram",
+            "laptop_storage",
+            "laptop_cpu",
+            "laptop_screen_size",
+            "laptop_screen_refresh_rate",
+            "laptop_battery_capacity",
+            "laptop_color",
+            "laptop_design_description",
+            "laptop_os",
+            "laptop_manufacturer",
+            "laptop_guarantee_month"
+    );
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
@@ -40,6 +78,41 @@ public class FakeProductDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        for(String categoryName : this.categoryName) {
+            try{
+                Category category = categoryService.creatCategory(
+                        CategoryDTO.builder()
+                                .name(categoryName)
+                                .build()
+                );
+                System.out.println("Category created: " + categoryName);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        for(String subcategoryName : this.subCategoryName) {
+            try{
+                SubCategory subCategory = subCategoryService.createSubCategory(
+                        SubCategoryDTO.builder()
+                                .subCategoryName(subcategoryName)
+                                .build()
+                );
+                System.out.println("Category created: " + subcategoryName);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        for(String name : this.attributes) {
+            try{
+                ProductAttribute productAttribute = productAttributeService
+                        .createProductAttribute(AttributeDTO.builder()
+                                .name(name)
+                                .build());
+                System.out.println("Product Attribute created: " + name);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
         for (int i = 0; i < 2000; i++) {
             ProductDTO productDTO = generateUniqueProduct();
             if (productDTO != null) {

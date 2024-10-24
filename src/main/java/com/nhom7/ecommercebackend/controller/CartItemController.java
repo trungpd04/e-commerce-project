@@ -1,13 +1,14 @@
 package com.nhom7.ecommercebackend.controller;
 
-import com.nhom7.ecommercebackend.model.CartItem;
-import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.service.CartItemService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
