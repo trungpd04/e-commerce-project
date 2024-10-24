@@ -2,19 +2,18 @@ package com.nhom7.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+
 @Builder
 @Entity
 @Table(name = "cart_items")
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class CartItem extends BaseEntity {
 
     @Id

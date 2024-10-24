@@ -9,14 +9,12 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data//toString
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-
-public class BaseEntity{
+public class BaseEntity {
     @Column(name = "created_at")
     //@JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime createdAt;

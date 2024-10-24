@@ -11,7 +11,6 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "categories")
-@Data//toString
 @Getter
 @Setter
 @AllArgsConstructor

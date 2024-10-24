@@ -8,7 +8,6 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "sub_categories")
-@Data//toString
 @Getter
 @Setter
 @AllArgsConstructor

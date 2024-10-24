@@ -2,11 +2,8 @@ package com.nhom7.ecommercebackend.service;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.repository.CategoryRepository;
-import com.nhom7.ecommercebackend.request.CategoryDTO;
-import com.nhom7.ecommercebackend.request.SubCategoryDTO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 
 import java.util.List;
 

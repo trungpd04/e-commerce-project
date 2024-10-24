@@ -1,8 +1,8 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
-import com.nhom7.ecommercebackend.request.ProductDTO;
-import com.nhom7.ecommercebackend.request.ProductDetailDTO;
+import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
+import com.nhom7.ecommercebackend.request.product.ProductDTO;
 import com.nhom7.ecommercebackend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -12,148 +12,154 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class FakeProductDataSeeder {
+public class FakeProductDataSeeder implements CommandLineRunner {
 
-//    private final ProductService productService;
-//    private final Faker faker = new Faker();
-//    private final Random random = new Random();
-//
-//    // Categories: 1 - Điện thoại (Phones), 2 - Laptop (Laptops)
-//    private final List<Long> categories = Arrays.asList(1L, 2L);
-//
-//    // Subcategories for phones and laptops
-//    private final List<Long> subcategoriesDienThoaiApple = Arrays.asList(1L);  // 1 - iPhone
-//    private final List<Long> subcategoriesDienThoaiSamsung = Arrays.asList(2L);  // 2 - Samsung
-//    private final List<Long> subcategoriesLaptopLenovo = Arrays.asList(4L);  // 4 - Lenovo (Laptops)
-//    private final List<Long> subcategoriesLaptopAsus = Arrays.asList(3L);  // 3 - Asus (Laptops)
-//
-//    // Predefined product names for each subcategory
-//    private final Set<String> uniqueProductNames = new HashSet<>(); // To ensure unique product names
-//
-//    // Smartphone models for iPhone and Samsung
-//    private final List<String> iphoneModels = Arrays.asList("iPhone 15 Pro Max", "iPhone 15", "iPhone 14", "iPhone 13", "iPhone SE", "iPhone 12 Mini", "iPhone 11 Pro", "iPhone XR", "iPhone X", "iPhone 8 Plus");
-//    private final List<String> samsungModels = Arrays.asList("Samsung Galaxy S22 Ultra", "Samsung Galaxy S21", "Samsung Galaxy Z Fold 3", "Samsung Galaxy A72", "Samsung Galaxy Note 20", "Samsung Galaxy S20", "Samsung Galaxy A52", "Samsung Galaxy S10", "Samsung Galaxy Z Flip", "Samsung Galaxy A50");
-//
-//    // Laptop models for Lenovo and Asus
-//    private final List<String> lenovoLaptopModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3", "Lenovo ThinkPad T14", "Lenovo Yoga Slim 7", "Lenovo Legion Y740", "Lenovo ThinkBook 15", "Lenovo IdeaPad Gaming 3", "Lenovo ThinkPad P1");
-//    private final List<String> asusLaptopModels = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
-//
-//    @Override
-//    public void run(String... args) throws Exception {
-//        // Create 500 fake products with unique names
-//        for (int i = 0; i < 500; i++) {
-//            ProductDTO productDTO = generateUniqueProduct();
-//
-//            if (productDTO != null) {
-//                try {
-//                    productService.createProduct(productDTO);
-//                    System.out.println("Product " + (i + 1) + " created successfully: " + productDTO.getName());
-//                } catch (Exception e) {
-//                    System.out.println("Failed to create product " + (i + 1) + ": " + e.getMessage());
-//                }
-//            }
-//        }
-//    }
-//
-//    private ProductDTO generateUniqueProduct() {
-//        Long categoryId;
-//        List<Long> subcategoryIds;
-//        String productName = "";
-//
-//        // Randomly select a category (Phone or Laptop)
-//        if (random.nextBoolean()) {
-//            categoryId = 1L; // Điện thoại (Smartphones)
-//
-//            // Randomly choose between iPhone and Samsung
-//            if (random.nextBoolean()) {
-//                subcategoryIds = subcategoriesDienThoaiApple;  // Subcategory: Apple (iPhone)
-//                productName = getRandomUniqueModel(iphoneModels);
-//            } else {
-//                subcategoryIds = subcategoriesDienThoaiSamsung;  // Subcategory: Samsung
-//                productName = getRandomUniqueModel(samsungModels);
-//            }
-//        } else {
-//            categoryId = 2L; // Laptop
-//
-//            // Randomly choose between Lenovo and Asus (Laptop models)
-//            if (random.nextBoolean()) {
-//                subcategoryIds = subcategoriesLaptopLenovo;  // Subcategory: Lenovo (Laptops)
-//                productName = getRandomUniqueModel(lenovoLaptopModels);
-//            } else {
-//                subcategoryIds = subcategoriesLaptopAsus;  // Subcategory: Asus (Laptops)
-//                productName = getRandomUniqueModel(asusLaptopModels);
-//            }
-//        }
-//
-//        if (productName == null) return null; // If no unique name available, skip this product
-//
-//        // Build the ProductDetailDTO
-//        ProductDetailDTO productDetailDTO = ProductDetailDTO.builder()
-//                .cpu(generateRandomCpu())
-//                .ram(random.nextInt(32) + 1) // Random RAM from 1 to 32 GB
-//                .screenSize(generateRandomScreenSize())
-//                .screenType(generateRandomScreenType())
-//                .screenRefreshRate(generateRandomScreenRefreshRate())
-//                .osName(generateRandomOs())
-//                .batteryCapacity(random.nextInt(3000, 6000))
-//                .manufacturer(faker.company().name())
-//                .color(faker.color().name())
-//                .quantity(random.nextInt(100) + 1) // Random quantity between 1 and 100
-//                .designDescription(faker.lorem().sentence())
-//                .guaranteeMonth(random.nextInt(12) + 1) // Random guarantee from 1 to 12 months
-//                .build();
-//
-//        // Build the ProductDTO
-//        return ProductDTO.builder()
-//                .name(productName)
-//                .description(faker.lorem().sentence())
-//                .price(Float.parseFloat(faker.commerce().price(100.0, 2000.0)))
-//                .thumbnail(null) // Assuming no thumbnail for fake products
-//                .categoryId(categoryId)
-//                .subcategory(subcategoryIds) // Add subcategories
-//                .productDetailDTO(productDetailDTO)
-//                .build();
-//    }
-//
-//    // Helper methods for generating random product names
-//    private String getRandomUniqueModel(List<String> models) {
-//        List<String> availableModels = new ArrayList<>(models);
-//        Collections.shuffle(availableModels);  // Shuffle the list for randomness
-//
-//        for (String model : availableModels) {
-//            if (!uniqueProductNames.contains(model)) {
-//                uniqueProductNames.add(model); // Mark as used
-//                return model;
-//            }
-//        }
-//        return null; // No unique names left in this category
-//    }
-//
-//    // Helper methods for generating random CPU and OS
-//    private String generateRandomCpu() {
-//        List<String> cpus = Arrays.asList("Qualcomm Snapdragon 888", "Exynos 2100", "Apple A14 Bionic", "Intel Core i7", "AMD Ryzen 7");
-//        return cpus.get(random.nextInt(cpus.size()));
-//    }
-//
-//    private String generateRandomOs() {
-//        List<String> operatingSystems = Arrays.asList("IOS", "Android", "Windows 10", "Windows 11");
-//        return operatingSystems.get(random.nextInt(operatingSystems.size()));
-//    }
-//    private String generateRandomScreenType() {
-//        List<String> screenTypes = Arrays.asList("IPS", "OLED");
-//        return screenTypes.get(random.nextInt(screenTypes.size())); // Randomly select IPS or OLED
-//    }
-//    private int generateRandomScreenRefreshRate() {
-//        List<Integer> refreshRates = Arrays.asList(60, 90, 120);
-//        return refreshRates.get(random.nextInt(refreshRates.size())); // Randomly select 60Hz, 90Hz, or 120Hz
-//    }
-//    private float generateRandomScreenSize() {
-//        float minSize = 5.5f;
-//        float maxSize = 7.5f;
-//        float randomSize = minSize + random.nextFloat() * (maxSize - minSize);
-//        return Math.round(randomSize * 10) / 10.0f;  // Round to one decimal place
-//    }
+    private final ProductService productService;
+    private final Faker faker = new Faker();
+    private final Random random = new Random();
 
+    // Set to store unique product names
+    private final Set<String> uniqueProductNames = new HashSet<>();
+
+    // Categories: 1 - Smartphones, 2 - Laptops
+    private final List<Long> categories = Arrays.asList(1L, 2L);
+
+    // Subcategories for phones and laptops
+    private final List<Long> subcategoriesPhones = Arrays.asList(1L, 2L); // iPhone and Samsung
+    private final List<Long> subcategoriesLaptops = Arrays.asList(3L, 4L); // Lenovo and Asus
+
+    // Smartphone models for iPhone and Samsung
+    private final List<String> iphoneModels = Arrays.asList("iPhone 15 Pro Max", "iPhone 15", "iPhone 14", "iPhone 13", "iPhone SE", "iPhone 12 Mini", "iPhone 11 Pro", "iPhone XR", "iPhone X", "iPhone 8 Plus");
+    private final List<String> samsungModels = Arrays.asList("Samsung Galaxy S22 Ultra", "Samsung Galaxy S21", "Samsung Galaxy Z Fold 3", "Samsung Galaxy A72", "Samsung Galaxy Note 20", "Samsung Galaxy S20", "Samsung Galaxy A52", "Samsung Galaxy S10", "Samsung Galaxy Z Flip", "Samsung Galaxy A50");
+
+    // Laptop models for Lenovo and Asus
+    private final List<String> lenovoModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3", "Lenovo ThinkPad T14", "Lenovo Yoga Slim 7", "Lenovo Legion Y740", "Lenovo ThinkBook 15", "Lenovo IdeaPad Gaming 3", "Lenovo ThinkPad P1");
+    private final List<String> asusModels  = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
+
+
+    @Override
+    public void run(String... args) throws Exception {
+        for (int i = 0; i < 2000; i++) {
+            ProductDTO productDTO = generateUniqueProduct();
+            if (productDTO != null) {
+                try {
+                    productService.createProduct(productDTO);
+                    System.out.println("Product " + (i + 1) + " created: " + productDTO.getName());
+                } catch (Exception e) {
+                    System.out.println("Failed to create product " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private ProductDTO generateUniqueProduct() {
+        Long categoryId;
+        List<Long> subcategoryIds;
+        String productName;
+
+        if (random.nextBoolean()) {
+            // Smartphone category
+            categoryId = 1L;
+            subcategoryIds = random.nextBoolean() ? Collections.singletonList(1L) : Collections.singletonList(2L);
+            productName = getRandomUniqueModel(subcategoryIds.get(0) == 1L ? iphoneModels : samsungModels);
+        } else {
+            // Laptop category
+            categoryId = 2L;
+            subcategoryIds = random.nextBoolean() ? Collections.singletonList(3L) : Collections.singletonList(4L);
+            productName = getRandomUniqueModel(subcategoryIds.get(0) == 3L ? lenovoModels : asusModels);
+        }
+
+        if (productName == null) return null;
+
+        // Generate attributes based on category
+        List<ProductAttributeValueDTO> attributeValues = new ArrayList<>();
+        if (categoryId == 1L) {
+            // Smartphone attributes
+            attributeValues.add(createAttributeValue("mobile_ram", String.valueOf(random.nextInt(8))));
+            attributeValues.add(createAttributeValue("mobile_storage", String.valueOf(random.nextInt(256))));
+            attributeValues.add(createAttributeValue("mobile_screen_type", generateRandomScreenType()));
+            attributeValues.add(createAttributeValue("mobile_screen_size", String.valueOf(generateRandomScreenSize())));
+            attributeValues.add(createAttributeValue("mobile_screen_refresh_rate", String.valueOf(generateRandomScreenRefreshRate())));
+            attributeValues.add(createAttributeValue("mobile_battery_capacity", String.valueOf(random.nextInt(4000, 5000))));
+            attributeValues.add(createAttributeValue("mobile_color", faker.color().name()));
+            attributeValues.add(createAttributeValue("mobile_design_description", faker.lorem().sentence()));
+            attributeValues.add(createAttributeValue("mobile_os", generateRandomOs()));
+            attributeValues.add(createAttributeValue("mobile_manufacturer", faker.company().name()));
+            attributeValues.add(createAttributeValue("mobile_quantity", String.valueOf(random.nextInt(100) + 1)));
+            attributeValues.add(createAttributeValue("mobile_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
+
+        } else {
+            // Laptop attributes
+            attributeValues.add(createAttributeValue("laptop_ram", String.valueOf(random.nextInt(16))));
+            attributeValues.add(createAttributeValue("laptop_storage", String.valueOf(random.nextInt(512))));
+            attributeValues.add(createAttributeValue("laptop_cpu", String.valueOf(generateRandomCpu())));
+            attributeValues.add(createAttributeValue("laptop_screen_size", String.valueOf(generateRandomScreenSize())));
+            attributeValues.add(createAttributeValue("laptop_screen_refresh_rate", String.valueOf(generateRandomScreenRefreshRate())));
+            attributeValues.add(createAttributeValue("laptop_battery_capacity", String.valueOf(random.nextInt(5000, 8000))));
+            attributeValues.add(createAttributeValue("laptop_color", faker.color().name()));
+            attributeValues.add(createAttributeValue("laptop_design_description", faker.lorem().sentence()));
+            attributeValues.add(createAttributeValue("laptop_os", generateRandomOs()));
+            attributeValues.add(createAttributeValue("laptop_manufacturer", faker.company().name()));
+            attributeValues.add(createAttributeValue("laptop_quantity", String.valueOf(random.nextInt(100) + 1)));
+            attributeValues.add(createAttributeValue("laptop_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
+        }
+
+        // Build the ProductDTO
+        return ProductDTO.builder()
+                .name(productName)
+                .description(faker.lorem().sentence())
+                .price(Float.parseFloat(faker.commerce().price(1000.0, 3000.0)))
+                .thumbnail(null)
+                .categoryId(categoryId)
+                .subcategory(subcategoryIds) // Associate with the selected subcategories
+                .attributeValues(attributeValues)
+                .build();
+    }
+
+    private ProductAttributeValueDTO createAttributeValue(String attributeName, String value) {
+        return ProductAttributeValueDTO.builder()
+                .attributeName(attributeName)
+                .value(value)
+                .build();
+    }
+
+    // Helper methods
+    private String getRandomUniqueModel(List<String> models) {
+        List<String> availableModels = new ArrayList<>(models);
+
+        Collections.shuffle(availableModels);
+
+        for (String model : availableModels) {
+            if (!uniqueProductNames.contains(model)) {
+                uniqueProductNames.add(model);
+                return model;
+            }
+        }
+        return null;
+    }
+
+    private String generateRandomCpu() {
+        List<String> cpus = Arrays.asList("Intel Core i7", "AMD Ryzen 7", "Apple M1", "Intel Core i5");
+        return cpus.get(random.nextInt(cpus.size()));
+    }
+
+    private String generateRandomScreenType() {
+        List<String> screenTypes = Arrays.asList("IPS", "OLED");
+        return screenTypes.get(random.nextInt(screenTypes.size()));
+    }
+
+    private int generateRandomScreenRefreshRate() {
+        List<Integer> refreshRates = Arrays.asList(60, 90, 120);
+        return refreshRates.get(random.nextInt(refreshRates.size()));
+    }
+
+    private float generateRandomScreenSize() {
+        return (float) (Math.round((5.0 + random.nextFloat() * 5.0) * 10.0) / 10.0); // Random size between 5.0 and 10.0 inches
+    }
+
+    private String generateRandomOs() {
+        List<String> operatingSystems = Arrays.asList("IOS", "Android", "Windows 10", "Windows 11");
+        return operatingSystems.get(random.nextInt(operatingSystems.size()));
+    }
 
 }
-

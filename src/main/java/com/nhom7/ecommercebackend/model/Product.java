@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Product {
+public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,16 +34,18 @@ public class Product {
     @ManyToMany
     private List<SubCategory> subcategory;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<ProductAttributeValue> attributeValues;
+
     @OneToMany(mappedBy = "product",
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     private List<ProductImage> productImages;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    private ProductDetail productDetail;
     @PrePersist
     private void setActive() {
         setActive(true);
     }
+
 }
 

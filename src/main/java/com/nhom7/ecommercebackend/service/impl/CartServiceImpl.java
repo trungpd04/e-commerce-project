@@ -9,12 +9,13 @@ import com.nhom7.ecommercebackend.repository.CartItemRepository;
 import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.UserRepository;
-import com.nhom7.ecommercebackend.request.CartDTO;
-import com.nhom7.ecommercebackend.request.CartItemDTO;
-import com.nhom7.ecommercebackend.request.ProductDTO;
+import com.nhom7.ecommercebackend.request.cart.CartDTO;
 import com.nhom7.ecommercebackend.service.CartService;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,16 +60,19 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Cart getCardByUserId(Long userId) {
-        Cart cart = cartRepository.findByUserId(userId)
+        return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new DataNotFoundException("User does not have a cart!"));
-        return cart;
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER')")
     public Cart createCart(CartDTO cartDTO) {
         User existingUser = userRepository.findById(cartDTO.getUserId())
-                .orElseThrow(() -> new DataNotFoundException("User does not exist!"));
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
+        if(cartRepository.existsByUserId(cartDTO.getUserId())) {
+            throw new DataIntegrityViolationException("User's cart has already existed!");
+        }
         List<CartItem> cartItems = new ArrayList<>();
         Cart cart = Cart.builder()
                 .cartItems(cartItems)
@@ -81,6 +85,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER')")
     public Cart removeItem(Long productId, Long cartId) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new DataNotFoundException("Cart not found!"));
@@ -107,11 +112,13 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('USER')")
     public void deleteCartByUserId(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
                         .orElseThrow(() -> new DataNotFoundException(("Cart does not exist!")));
         cartRepository.deleteByUserId(userId);
     }
+
     private void updateCart(Cart cart) {
         // Calculate total quantity and total products in the cart
         int totalQuantity = cart.getCartItems().stream()

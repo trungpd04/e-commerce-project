@@ -1,17 +1,14 @@
 package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
-import com.nhom7.ecommercebackend.model.Cart;
 import com.nhom7.ecommercebackend.model.CartItem;
-import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.repository.CartItemRepository;
 import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
-import com.nhom7.ecommercebackend.request.CartItemDTO;
+import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.service.CartItemService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
