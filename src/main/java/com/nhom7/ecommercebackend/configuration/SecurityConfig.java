@@ -1,5 +1,9 @@
 package com.nhom7.ecommercebackend.configuration;
 
+import com.nhom7.ecommercebackend.exception.DataNotFoundException;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
+import com.nhom7.ecommercebackend.model.User;
+import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -12,12 +16,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -32,16 +43,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
-@EnableWebSecurity(debug = true)
 public class SecurityConfig {
 
     private final RsaKeyProperties rsaKeyProperties;
     private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
     private final CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler;
+    private final UserRepository userRepository;
 
     @Value("${api.prefix}")
     protected String API_PREFIX;
@@ -78,7 +90,6 @@ public class SecurityConfig {
         httpSecurity.authorizeHttpRequests(config ->
                 config.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT_POST).permitAll()
                         .requestMatchers(HttpMethod.GET, PUBLIC_ENDPOINT_GET).permitAll()
-//                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/users/reset_password").permitAll()
                         .anyRequest().authenticated());
         httpSecurity.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
@@ -89,7 +100,35 @@ public class SecurityConfig {
         );
         return httpSecurity.build();
     }
-
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return subject -> {
+            Optional<User> existingEmailUser = userRepository.findByEmail(subject);
+            if(existingEmailUser.isPresent()){
+                return existingEmailUser.get();
+            }
+            Optional<User> existingPhoneNumberUser = userRepository.findByPhoneNumber(subject);
+            if(existingPhoneNumberUser.isPresent()) {
+                return existingPhoneNumberUser.get();
+            }
+            throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
+        };
+    }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
+    }
     @Bean
     JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();

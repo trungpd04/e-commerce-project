@@ -1,16 +1,15 @@
 package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
+import com.nhom7.ecommercebackend.exception.MessageKeys;
 import com.nhom7.ecommercebackend.model.*;
-import com.nhom7.ecommercebackend.repository.OrderDetailRepository;
+import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.OrderRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
-import com.nhom7.ecommercebackend.repository.UserRepository;
-import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
-import com.nhom7.ecommercebackend.exception.MessageKeys;
+import com.nhom7.ecommercebackend.utils.UserUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -18,32 +17,54 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final UserRepository userRepository;
+    private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
+    private final UserUtil userUtil;
 
     @Override
     @Transactional
     public Order createOrder(OrderDTO orderDTO) {
-        User user = userRepository.findById(orderDTO.getUserPlaceOrderId())
-                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
-        List<OrderDetail> orderDetails = new ArrayList<>();
+        User loggedInUser = userUtil.getLoggedInUser();
+        Cart cart = cartRepository.findByUserId(loggedInUser.getId())
+                .orElseThrow(() -> new DataNotFoundException("Empty Cart"));
+        Order newOrder = createOrder(cart, orderDTO);
+        List<OrderDetail> orderDetails = createOrderDetails(newOrder, cart);
+        newOrder.setTotalMoney(calculateTotalAmount(orderDetails));
+        newOrder.setOrderDetails(orderDetails);
+        return orderRepository.save(newOrder);
+    }
+    private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
+        return cart.getCartItems().stream().map(cartItem -> {
+            Product product = cartItem.getProduct();
+            product.setQuantity(product.getQuantity() - cartItem.getQuantity());
+            BigDecimal totalMoneyPerCartItem = product.getPrice().multiply(new BigDecimal(cartItem.getQuantity()));
+            productRepository.save(product);
+            return OrderDetail.builder()
+                    .numberOfProducts(cartItem.getQuantity())
+                    .totalMoney(totalMoneyPerCartItem)
+                    .order(order)
+                    .product(product)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+    private Order createOrder(Cart cart, OrderDTO orderDTO) {
         Order newOrder = new Order();
         modelMapper.map(orderDTO, newOrder);
-        newOrder.setUser(user);
-        newOrder.setBuyerEmail(user.getEmail());
+        newOrder.setUser(cart.getUser());
+        newOrder.setBuyerEmail(cart.getUser().getEmail());
         newOrder.setOrderDate(LocalDateTime.now());//lấy thời điểm hiện tại
         newOrder.setStatus(OrderStatus.PENDING);
         LocalDate shippingDate = orderDTO.getShippingDate() == null
@@ -54,31 +75,16 @@ public class OrderServiceImpl implements OrderService {
         }
         newOrder.setShippingDate(shippingDate);
         newOrder.setActive(true);
-        float orderTotalMoney = 0;
-        for(CartItemDTO cartItemDTO : orderDTO.getCartItems()) {
-            int numberOfProducts = 0;
-            float totalMoneyOfProduct = 0;
-            Product existingProduct = productRepository.findProductById(cartItemDTO.getProductId())
-                    .orElseThrow(() -> new DataNotFoundException("Product not exist!"));
-            numberOfProducts += cartItemDTO.getQuantity();
-            totalMoneyOfProduct += cartItemDTO.getQuantity() * existingProduct.getPrice();
-            OrderDetail orderDetail = OrderDetail
-                    .builder()
-                    .order(newOrder)
-                    .product(existingProduct)
-                    .numberOfProducts(numberOfProducts)
-                    .totalMoney(totalMoneyOfProduct)
-                    .build();
-            orderTotalMoney += orderTotalMoney + orderDetail.getTotalMoney();
-            orderDetails.add(orderDetail);
-        }
-        newOrder.setTotalMoney(orderTotalMoney);
-        newOrder.setOrderDetails(orderDetails);
-        orderDetailRepository.saveAll(orderDetails);
-        return orderRepository.save(newOrder);
+        newOrder.setUser(cart.getUser());
+        return newOrder;
     }
-
-
+    private BigDecimal calculateTotalAmount(List<OrderDetail> orderItemList) {
+        return orderItemList
+                .stream()
+                .map(item -> item.getProduct().getPrice()
+                        .multiply(new BigDecimal(item.getNumberOfProducts())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
     @Override
     public Order findOrderById(UUID orderId) {
         return orderRepository.findById(orderId)

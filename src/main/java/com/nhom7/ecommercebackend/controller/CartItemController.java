@@ -28,11 +28,4 @@ public class CartItemController {
                 .message("Remove cart item successfully!")
                 .build();
     }
-    private CartItemDTO toCartItemDTO(CartItem cartItem) {
-        return CartItemDTO.builder()
-                .cartId(cartItem.getCart().getId())
-                .productId(cartItem.getProduct().getId())
-                .quantity(cartItem.getQuantity())
-                .build();
-    }
 }

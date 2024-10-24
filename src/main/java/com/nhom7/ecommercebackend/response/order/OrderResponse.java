@@ -6,6 +6,7 @@ import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.model.OrderDetail;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,7 +44,7 @@ public class OrderResponse {
     private String status;
 
     @JsonProperty("total_money")
-    private double totalMoney;
+    private BigDecimal totalMoney;
 
     @JsonProperty("shipping_method")
     private String shippingMethod = "";

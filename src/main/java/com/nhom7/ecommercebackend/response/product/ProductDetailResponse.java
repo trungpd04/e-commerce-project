@@ -6,6 +6,7 @@ import com.nhom7.ecommercebackend.model.ProductImage;
 import com.nhom7.ecommercebackend.model.SubCategory;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class ProductDetailResponse {
     private String name;
     private String description;
     private String thumbnail;
-    private float price;
+    private BigDecimal price;
     private boolean active;
     @JsonProperty("category_name")
     private String category;

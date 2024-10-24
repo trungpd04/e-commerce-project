@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.OrderDetail;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Getter
@@ -26,14 +27,14 @@ public class OrderDetailResponse {
     @JsonProperty("thumbnail")
     private String thumbnail;
 
-    @JsonProperty("price")
-    private Float price;
+    @JsonProperty("unit_price")
+    private BigDecimal price;
 
     @JsonProperty("number_of_products")
     private int numberOfProducts;
 
     @JsonProperty("total_money")
-    private Float totalMoney;
+    private BigDecimal totalMoney;
 
 
     public static OrderDetailResponse fromOrderDetail(OrderDetail orderDetail) {

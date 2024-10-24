@@ -25,14 +25,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 @Configuration
-@RequiredArgsConstructor
 public class AppConfiguration {
 
-    private final UserRepository userRepository;
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
@@ -40,31 +34,6 @@ public class AppConfiguration {
         modelMapper.createTypeMap(OrderDTO.class, Order.class)
                 .addMappings(map -> map.skip(Order::setId));
         return modelMapper;
-    }
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return subject -> {
-            Optional<User> existingEmailUser = userRepository.findByEmail(subject);
-            if(existingEmailUser.isPresent()){
-                return existingEmailUser.get();
-            }
-            Optional<User> existingPhoneNumberUser = userRepository.findByPhoneNumber(subject);
-            if(existingPhoneNumberUser.isPresent()) {
-                return existingPhoneNumberUser.get();
-            }
-            throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
-        };
-    }
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        return authenticationProvider;
     }
     @Bean
     public JavaMailSender mailSender() {

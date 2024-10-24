@@ -15,6 +15,7 @@ import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.service.UserService;
+import com.nhom7.ecommercebackend.utils.UserUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -41,9 +42,9 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final OrderRepository orderRepository;
-    private final UserDetailsService userDetailsService;
     private final ModelMapper modelMapper;
     private final ResetPasswordRepository resetPasswordRepository;
+    private final UserUtil userUtil;
     @Override
     @Transactional
     public User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
@@ -115,7 +116,6 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
-        System.out.println(SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString());
         user.setActive(false);
     }
 
@@ -144,15 +144,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetailResponse getUserDetail() {
-        SecurityContext context = SecurityContextHolder.getContext();
-        String userName = context.getAuthentication().getName();
         UserDetailResponse userDetailResponse = new UserDetailResponse();
-        User user = (User) userDetailsService.loadUserByUsername(userName);
+        User user = (User) userUtil.getLoggedInUser();
         if (Objects.isNull(user)) {
             throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
         }
-        System.out.println(user.getAuthorities().toString());
-        modelMapper.map((User) userDetailsService.loadUserByUsername(userName),userDetailResponse);
+        modelMapper.map((User) userUtil.getLoggedInUser(),userDetailResponse);
         userDetailResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
         return userDetailResponse;
     }
@@ -160,9 +157,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createPassword(PasswordCreationRequest request) throws PasswordCreationException {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        String userName = securityContext.getAuthentication().getName();
-        User user = (User) userDetailsService.loadUserByUsername(userName);
+        User user = (User) userUtil.getLoggedInUser();
         if (Objects.isNull(user)) {
             throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
         }

@@ -6,6 +6,7 @@ import com.nhom7.ecommercebackend.model.CartItem;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 @Data
@@ -17,7 +18,7 @@ public class CartResponse {
     @JsonProperty("user_id")
     private Long userId;
     @JsonProperty("total_money")
-    private Float totalMoney;
+    private BigDecimal totalMoney;
     @JsonProperty("number_of_products")
     private int numberOfProducts;
     @JsonProperty("cart_items")
@@ -29,11 +30,11 @@ public class CartResponse {
             CartItemResponse cartItemResponse = CartItemResponse.fromCartItem(cartItem);
             cartItemResponseList.add(cartItemResponse);
         }
-        float totalMoney = 0;
+        BigDecimal totalMoney  = new BigDecimal(0);
         int numberOfProducts = 0;
         for(CartItem cartItem : cart.getCartItems()) {
             numberOfProducts += cartItem.getQuantity();
-            totalMoney += cartItem.getProduct().getPrice() * cartItem.getQuantity();
+            totalMoney = totalMoney.add(cartItem.getProduct().getPrice().multiply(new BigDecimal(cartItem.getQuantity())));
         }
         return CartResponse.builder()
                 .cartId(cart.getId())

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -18,7 +19,7 @@ public class ProductDTO {
     @Range(min = 3, message = "Product description must have at least 3 characters")
     private String description;
 
-    private float price;
+    private BigDecimal price;
 
     private String thumbnail;
 
@@ -26,7 +27,7 @@ public class ProductDTO {
     private Long categoryId;
 
     private List<Long> subcategory;
-
+    private Long quantity;
     @JsonProperty("product_attributes")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ProductAttributeValueDTO> attributeValues;

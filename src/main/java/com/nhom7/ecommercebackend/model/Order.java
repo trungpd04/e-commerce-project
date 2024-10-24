@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,7 +49,7 @@ public class Order {
 
     @Column(name = "total_money")
     @Min(value = 0, message = "Total money must be >= 0")
-    private Float totalMoney;
+    private BigDecimal totalMoney;
 
     @Column(name = "shipping_method")
     private String shippingMethod = "";
