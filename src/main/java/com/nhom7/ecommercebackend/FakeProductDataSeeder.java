@@ -5,6 +5,8 @@ import com.nhom7.ecommercebackend.model.Category;
 import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.ProductAttribute;
 import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.repository.CategoryRepository;
+import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
 import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
@@ -86,6 +88,8 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     // Laptop models for Lenovo and Asus
     private final List<String> lenovoModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3", "Lenovo ThinkPad T14", "Lenovo Yoga Slim 7", "Lenovo Legion Y740", "Lenovo ThinkBook 15", "Lenovo IdeaPad Gaming 3", "Lenovo ThinkPad P1");
     private final List<String> asusModels  = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
 
     @Override
@@ -104,11 +108,29 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         }
         for(String subcategoryName : this.subCategoryName) {
             try{
-                SubCategory subCategory = subCategoryService.createSubCategory(
-                        SubCategoryDTO.builder()
-                                .subCategoryName(subcategoryName)
-                                .build()
-                );
+                if(subcategoryName == "Lenovo" || subcategoryName == "Asus"){
+                    Category category = categoryRepository.findById(2L).get();
+                    List<SubCategory> subCategories = new ArrayList<>();
+                    SubCategory subCategory = SubCategory.builder()
+                            .category(category)
+                            .name(subcategoryName)
+                            .build();
+                    subCategories.add(subCategory);
+                    category.setSubCategoryList(subCategories);
+                    categoryRepository.save(category);
+                    subCategoryRepository.save(subCategory);
+                }else{
+                    Category category = categoryRepository.findById(1L).get();
+                    List<SubCategory> subCategories = new ArrayList<>();
+                    SubCategory subCategory = SubCategory.builder()
+                            .category(category)
+                            .name(subcategoryName)
+                            .build();
+                    subCategories.add(subCategory);
+                    category.setSubCategoryList(subCategories);
+                    categoryRepository.save(category);
+                    subCategoryRepository.save(subCategory);
+                }
                 System.out.println("Category created: " + subcategoryName);
             }catch (Exception e) {
                 System.out.println(e.getMessage());

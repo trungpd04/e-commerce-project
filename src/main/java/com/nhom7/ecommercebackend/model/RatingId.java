@@ -1,17 +1,22 @@
 package com.nhom7.ecommercebackend.model;
 
-import jakarta.persistence.IdClass;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.io.Serializable;
 
-@IdClass(RatingId.class)
+@Setter
+@Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Getter
 public class RatingId implements Serializable {
+
+    @ManyToOne
     private User user;
+
+    @ManyToOne
     private Product product;
+
 }

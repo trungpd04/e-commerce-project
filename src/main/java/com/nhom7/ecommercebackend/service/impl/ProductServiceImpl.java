@@ -37,12 +37,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
+
         if (!productDTO.getName().isBlank() && productRepository.existsByName(productDTO.getName())) {
             throw new DataIntegrityViolationException("Product name already exists!");
         }
+
         Category category = categoryRepository.findById(productDTO.getCategoryId())
                 .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
         Product newProduct = buildProduct(productDTO);
+
         return productRepository.save(newProduct);
     }
     @Override

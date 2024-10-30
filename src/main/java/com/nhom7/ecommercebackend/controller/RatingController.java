@@ -84,8 +84,8 @@ public class RatingController {
     }
     private RatingDTO toRatingDTO(Rating rating) {
         return RatingDTO.builder()
-                .userId(rating.getUser().getId())
-                .productId(rating.getProduct().getId())
+                .userId(rating.getId().getUser().getId())
+                .productId(rating.getId().getProduct().getId())
                 .rate(rating.getRate())
                 .comment(rating.getComment())
                 .build();

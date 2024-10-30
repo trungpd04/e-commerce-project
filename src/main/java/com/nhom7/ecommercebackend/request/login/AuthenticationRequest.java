@@ -11,5 +11,6 @@ public class AuthenticationRequest {
 
     @JsonProperty("user_name")
     private String userName;
+
     private String password;
 }
