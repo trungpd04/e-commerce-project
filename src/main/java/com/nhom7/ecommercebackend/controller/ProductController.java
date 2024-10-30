@@ -171,7 +171,7 @@ public class ProductController {
     @GetMapping("/images/{imageName}")
     public ResponseEntity<?> getImage(@PathVariable String imageName) throws MalformedURLException {
         try {
-            Path path = Paths.get(STR."uploads/\{imageName}");
+            Path path = Paths.get("uploads/" + imageName );
             UrlResource urlResource = new UrlResource(path.toUri());
             if (urlResource.exists()) {
                 return ResponseEntity.ok()

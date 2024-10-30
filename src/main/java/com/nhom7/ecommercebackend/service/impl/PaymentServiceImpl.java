@@ -32,7 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
         }else{
             vnPayParams.put("vnp_TxnRef", orderId);
         }
-        String paymentInfo = STR."Thanh toan cho don hang: \{orderId}";
+        String paymentInfo = "Thanh toan cho don hang: " + orderId;
         vnPayParams.put("vnp_OrderInfo", paymentInfo);
         Long paymentAmount = amount * 100L;
         vnPayParams.put("vnp_Amount", String.valueOf(paymentAmount));
@@ -66,7 +66,7 @@ public class PaymentServiceImpl implements PaymentService {
 //        System.out.println(query.toString());
         String secureHash = vnPayUtil.hmacSHA512WithHashSecret(query.toString());
 //        System.out.println(secureHash);
-        queryUrl += STR."&vnp_SecureHash=\{secureHash}";
-        return STR."\{vnPayConfig.getVnPayUrl()}?\{queryUrl}";
+        queryUrl += "&vnp_SecureHash=" + secureHash;
+        return vnPayConfig.getVnPayUrl() + "?"  + queryUrl;
     }
 }

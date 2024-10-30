@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         int size = product.getProductImages().size();
         if(size >= ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
-            throw new InvalidParamException(STR."Number of images must be <= \{ProductImage.MAXIMUM_IMAGES_PER_PRODUCT}");
+            throw new InvalidParamException("Number of images must be <= " + ProductImage.MAXIMUM_IMAGES_PER_PRODUCT);
         }
         if(product.getThumbnail() == null) {
             product.setThumbnail(productImage.getImageUrl());
