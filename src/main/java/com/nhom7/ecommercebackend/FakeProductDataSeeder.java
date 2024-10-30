@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
 import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.ProductAttribute;
 import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
@@ -14,11 +15,22 @@ import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
 import com.nhom7.ecommercebackend.service.SubCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -117,12 +129,24 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             ProductDTO productDTO = generateUniqueProduct();
             if (productDTO != null) {
                 try {
-                    productService.createProduct(productDTO);
+                    Product product = productService.createProduct(productDTO);
+
                     System.out.println("Product " + (i + 1) + " created: " + productDTO.getName());
                 } catch (Exception e) {
+
                     System.out.println("Failed to create product " + (i + 1) + ": " + e.getMessage());
                 }
             }
+        }
+    }
+
+    public List<String> listFilesUsingFilesList(String dir) throws IOException {
+        try (Stream<Path> stream = Files.list(Paths.get(dir))) {
+            return stream
+                    .filter(file -> !Files.isDirectory(file))
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .collect(Collectors.toList());
         }
     }
 

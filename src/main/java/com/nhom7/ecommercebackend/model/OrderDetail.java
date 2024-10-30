@@ -19,7 +19,6 @@ public class OrderDetail {
 
     @ManyToOne
     @JoinColumn(name = "order_id")
-//    @JsonBackReference
     private Order order;
 
     @ManyToOne
@@ -31,6 +30,5 @@ public class OrderDetail {
 
     @Column(name = "total_money", nullable = false)
     private BigDecimal totalMoney;
-
 
 }
