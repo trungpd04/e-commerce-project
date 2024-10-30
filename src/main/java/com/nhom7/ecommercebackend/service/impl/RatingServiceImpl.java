@@ -3,6 +3,7 @@ package com.nhom7.ecommercebackend.service.impl;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.Rating;
+import com.nhom7.ecommercebackend.model.RatingId;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.RatingRepository;
@@ -32,18 +33,20 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional
     public Rating addRating(RatingDTO ratingDTO) {
+
         User user = userRepository.findById(ratingDTO.getUserId())
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         Product product = productRepository.findProductById(ratingDTO.getProductId())
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
         Optional<Rating> existRating = ratingRepository.findByUserId(ratingDTO.getUserId());
-        if(existRating.isPresent()) {
+
+        if (existRating.isPresent()) {
             throw new DataIntegrityViolationException("User has already reviewed this product!");
         }
+
         Rating newRating = Rating.builder()
                 .rate(ratingDTO.getRate())
-                .user(user)
-                .product(product)
+                .id(RatingId.builder().user(user).product(product).build())
                 .comment(ratingDTO.getComment())
                 .build();
         return ratingRepository.save(newRating);
@@ -62,13 +65,16 @@ public class RatingServiceImpl implements RatingService {
     @Override
     @Transactional
     public void deleteRating(Long userId, Long productId) {
+
         Rating existRating = ratingRepository.findByUserId(userId)
                 .orElseThrow(() -> new DataNotFoundException("User have not rated any product yet!"));
-        if(!Objects.equals(existRating.getProduct().getId(), productId)) {
+
+        if(!Objects.equals(existRating.getId().getProduct().getId(), productId)) {
             throw new DataNotFoundException("User have not rated this product yet!");
         }else{
             ratingRepository.delete(existRating);
         }
+
     }
 
     @Override
@@ -76,4 +82,5 @@ public class RatingServiceImpl implements RatingService {
         Page<Rating> page = ratingRepository.getAllByProductId(productId, pageRequest);
         return page.map(RatingResponse::fromRating);
     }
+
 }

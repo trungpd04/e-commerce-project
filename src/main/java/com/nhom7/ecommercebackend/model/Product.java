@@ -31,8 +31,10 @@ public class Product extends BaseEntity {
 
     @Column(name = "active")
     private Boolean active;
+
     @Column(name = "quantity")
     private Long quantity;
+
     @ManyToMany
     private List<SubCategory> subcategory;
 

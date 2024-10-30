@@ -10,21 +10,19 @@ import org.hibernate.validator.constraints.Range;
 @AllArgsConstructor
 @Getter
 @Setter
-@IdClass(RatingId.class)
 public class Rating extends BaseEntity {
 
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "user")
-    private User user;
-
-    @Id
-    @ManyToOne
-    @JoinColumn(name = "product")
-    private Product product;
+    @EmbeddedId
+    private RatingId id = new RatingId();
 
     @Range(min = 1, max = 5, message = "Rating must be in range 1-5 star!")
     private int rate;
 
     private String comment;
+
+    public Rating id(User user, Product product) {
+        this.id.setUser(user);
+        this.id.setProduct(product);
+        return this;
+    }
 }

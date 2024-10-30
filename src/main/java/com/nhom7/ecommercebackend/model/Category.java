@@ -27,8 +27,8 @@ public class Category {
     @OneToMany(mappedBy = "category",
             cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH},
             orphanRemoval = false)
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
-//    @JsonIgnore
     @JsonProperty("sub_categories")
     private List<SubCategory> subCategoryList;
 }

@@ -17,20 +17,26 @@ import java.util.List;
 @Getter
 @Setter
 public class ProductDetailResponse {
+
     private Long id;
     private String name;
     private String description;
     private String thumbnail;
     private BigDecimal price;
     private boolean active;
+
     @JsonProperty("category_name")
     private String category;
+
     private List<String> subcategory;
+
     @JsonProperty("product_images")
     private List<ProductImage> productImages;
     private List<ProductAttributeValueResponse> attributes;
     public static ProductDetailResponse fromProduct(Product product) {
+
         List<ProductAttributeValueResponse> attributeValues = new ArrayList<>();
+
         product.getAttributeValues().forEach(attributeValue -> {
             ProductAttributeValueResponse response = ProductAttributeValueResponse.builder()
                     .name(attributeValue.getProductAttribute().getName())
@@ -38,6 +44,7 @@ public class ProductDetailResponse {
                     .build();
             attributeValues.add(response);
         });
+
         List<String> subcategory = new ArrayList<>();
         for (SubCategory subCategory : product.getSubcategory()) {
             subcategory.add(subCategory.getName());
@@ -50,7 +57,7 @@ public class ProductDetailResponse {
                 .active(product.getActive())
                 .subcategory(subcategory)
                 .price(product.getPrice())
-                .category(product.getSubcategory().get(0).getCategory().getName())
+                .category(product.getSubcategory().getFirst().getCategory().getName())
                 .attributes(attributeValues)
                 .productImages(product.getProductImages())
                 .build();

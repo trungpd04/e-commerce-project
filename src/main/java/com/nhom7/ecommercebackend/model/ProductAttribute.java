@@ -16,6 +16,8 @@ public class ProductAttribute  {
     @Column(name = "attribute_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int attributeId;
+
     @Column(name = "name", length = 64, nullable = false)
     private String name;
+
 }

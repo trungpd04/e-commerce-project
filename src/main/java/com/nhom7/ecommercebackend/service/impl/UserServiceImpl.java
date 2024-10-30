@@ -59,7 +59,7 @@ public class UserServiceImpl implements UserService {
         if (role.getName().equalsIgnoreCase("ADMIN")) {
             throw new PermissionDenyException("Registering admin accounts is not allowed!");
         }
-        if(userDTO.getPassword().equalsIgnoreCase(userDTO.getRetypePassword())) {
+        if(!userDTO.getPassword().equalsIgnoreCase(userDTO.getRetypePassword())) {
             throw new PasswordCreationException(MessageKeys.PASSWORD_NOT_MATCH.toString());
         }
         User user = User.builder()
