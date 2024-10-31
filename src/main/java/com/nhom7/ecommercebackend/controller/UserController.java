@@ -49,6 +49,7 @@ public class UserController {
 
     @Value("${app.cors.allowedOrigins}")
     private String ALLOW_ORIGIN;
+
     @PostMapping("/register")
     public ApiResponse registerUser(@RequestBody UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         User newUser = userService.register(userDTO);
@@ -143,7 +144,7 @@ public class UserController {
     }
     @GetMapping("/orders/{userId}")
     @PreAuthorize("hasRole('USER')")
-    @SecurityRequirement(name = "bearer-token")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse getMyOrders
             (
                     @PathVariable("userId") Long userId,
@@ -173,9 +174,10 @@ public class UserController {
                 .data(authenticateService.getOauth2UserInfo(alt, accessToken))
                 .build();
     }
+
     @GetMapping("/detail")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-token")
     public ApiResponse getUserDetail() {
         return ApiResponse.builder()
                 .status(HTTP_OK)
@@ -183,9 +185,10 @@ public class UserController {
                 .data(userService.getUserDetail())
                 .build();
     }
+
     @GetMapping("")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-token")
     public ApiResponse getAllUser(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
@@ -208,7 +211,7 @@ public class UserController {
                 .build();
     }
     @PostMapping("/createPassword")
-    @SecurityRequirement(name = "bearer-token")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse createPassword(@RequestBody PasswordCreationRequest request) throws PasswordCreationException {
         userService.createPassword(request);

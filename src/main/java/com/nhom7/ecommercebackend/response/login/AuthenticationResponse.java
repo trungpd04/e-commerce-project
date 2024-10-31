@@ -9,6 +9,9 @@ import lombok.Data;
 @Builder
 public class AuthenticationResponse {
 
+    @JsonProperty("user_full_name")
+    private String userFullName;
+
     @JsonProperty("access_token")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String accessToken;
