@@ -21,6 +21,7 @@ public class CartController {
 
     @PutMapping("")
     @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse updateCart(
             @RequestParam(name = "product_id") Long productId,
             @RequestParam(name = "quantity") int quantity
@@ -34,6 +35,7 @@ public class CartController {
     }
     @GetMapping("/my-cart")
     @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse getCartByUserId() {
         Cart cart = cartService.getMyCart();
         return ApiResponse.builder()
@@ -44,6 +46,7 @@ public class CartController {
     }
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/items/{productId}")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse addToCart(
             @PathVariable("productId") Long productId
     ) {
@@ -56,6 +59,7 @@ public class CartController {
     }
     @DeleteMapping("/items/{productId}")
     @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse removeItem(
             @PathVariable("productId") Long productId
     ) {

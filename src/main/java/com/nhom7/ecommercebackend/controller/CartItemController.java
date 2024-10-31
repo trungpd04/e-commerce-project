@@ -22,6 +22,7 @@ public class CartItemController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse removeCartItem(@PathVariable("id") int cartItemId) {
         cartItemService.deleteCartItemById(cartItemId);
         return ApiResponse.builder()

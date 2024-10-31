@@ -64,6 +64,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
         authenticationManager.authenticate(authenticationToken);
 
         return AuthenticationResponse.builder()
+                .userFullName(existiongUser.getFullName())
                 .accessToken(jwtUtils.generateToken(existiongUser))
                 .authenticated(true)
                 .build();
