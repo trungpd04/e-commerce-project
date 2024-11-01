@@ -167,11 +167,7 @@ public class UserController {
             @RequestParam("login_type") String loginType
     ) throws Exception {
         AuthenticationRequest request = authenticateService.exchangeToken(code, loginType);
-        return ApiResponse.builder()
-                .status(HTTP_OK)
-                .message("Login successfully!")
-                .data(this.login(request))
-                .build();
+        return this.login(request);
     }
 
     @GetMapping("/detail")
