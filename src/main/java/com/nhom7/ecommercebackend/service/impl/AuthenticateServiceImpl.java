@@ -61,12 +61,9 @@ public class AuthenticateServiceImpl implements AuthenticateService {
 
         User existiongUser = user.get();
 
-        if(!existiongUser.getPassword().isEmpty()
+        if(!Objects.isNull(existiongUser.getPassword())
             && Objects.isNull(existiongUser.getProvider())
             && Objects.isNull(existiongUser.getProviderId())) {
-            UsernamePasswordAuthenticationToken authenticationToken
-                    = new UsernamePasswordAuthenticationToken(subject, loginRequest.getPassword(), existiongUser.getAuthorities());
-            authenticationManager.authenticate(authenticationToken);
 
             return AuthenticationResponse.builder()
                     .userFullName(existiongUser.getFullName())
@@ -74,12 +71,9 @@ public class AuthenticateServiceImpl implements AuthenticateService {
                     .authenticated(true)
                     .build();
         } else {
-            if (existiongUser.getPassword().isEmpty()
+            if (Objects.isNull(existiongUser.getPassword())
                     && !Objects.isNull(existiongUser.getProvider())
                     && !Objects.isNull(existiongUser.getProviderId())) {
-                UsernamePasswordAuthenticationToken authenticationToken
-                        = new UsernamePasswordAuthenticationToken(subject, null, existiongUser.getAuthorities());
-                authenticationManager.authenticate(authenticationToken);
 
                 return AuthenticationResponse.builder()
                         .userFullName(existiongUser.getFullName())
