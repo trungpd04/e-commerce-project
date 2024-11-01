@@ -3,18 +3,16 @@ package com.nhom7.ecommercebackend.service.impl;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.PermissionDenyException;
 import com.nhom7.ecommercebackend.exception.TokenException;
+import com.nhom7.ecommercebackend.exception.UnsupportedLoginException;
 import com.nhom7.ecommercebackend.model.User;
-import com.nhom7.ecommercebackend.model.UserOauth2Info;
 import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
 import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
-import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
-import com.nhom7.ecommercebackend.response.login.ExchangeTokenResponse;
 import com.nhom7.ecommercebackend.service.AuthenticateService;
-import com.nhom7.ecommercebackend.utils.JwtUtils;
+import com.nhom7.ecommercebackend.utils.AuthenticationUtils;
 import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,15 +20,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticateServiceImpl implements AuthenticateService {
 
-    private final JwtUtils jwtUtils;
+    private final AuthenticationUtils authenticationUtils;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
+
     @Override
     public AuthenticationResponse login(AuthenticationRequest loginRequest) throws PermissionDenyException {
         Optional<User> user = Optional.empty();
@@ -44,7 +44,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
                 }else{
                     throw new PermissionDenyException("Your account has bean lock!");
                 }
-            }else {
+            } else {
                 Optional<User> userPhoneOptional = userRepository.findByPhoneNumber(loginRequest.getUserName());
                 if (userPhoneOptional.isPresent()) {
                     if (userPhoneOptional.get().isActive()) {
@@ -58,45 +58,63 @@ public class AuthenticateServiceImpl implements AuthenticateService {
                 }
             }
         }
-        User existiongUser = user.get();
-        UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(subject, loginRequest.getPassword(), existiongUser.getAuthorities());
-        authenticationManager.authenticate(authenticationToken);
 
-        return AuthenticationResponse.builder()
-                .userFullName(existiongUser.getFullName())
-                .accessToken(jwtUtils.generateToken(existiongUser))
-                .authenticated(true)
-                .build();
+        User existiongUser = user.get();
+
+        if(!existiongUser.getPassword().isEmpty()
+            && Objects.isNull(existiongUser.getProvider())
+            && existiongUser.getProviderId().isEmpty()) {
+            UsernamePasswordAuthenticationToken authenticationToken
+                    = new UsernamePasswordAuthenticationToken(subject, loginRequest.getPassword(), existiongUser.getAuthorities());
+            authenticationManager.authenticate(authenticationToken);
+
+            return AuthenticationResponse.builder()
+                    .userFullName(existiongUser.getFullName())
+                    .accessToken(authenticationUtils.generateToken(existiongUser))
+                    .authenticated(true)
+                    .build();
+        } else {
+            if (existiongUser.getPassword().isEmpty()
+                    && !Objects.isNull(existiongUser.getProvider())
+                    && !existiongUser.getProviderId().isEmpty()) {
+                UsernamePasswordAuthenticationToken authenticationToken
+                        = new UsernamePasswordAuthenticationToken(subject, null, existiongUser.getAuthorities());
+                authenticationManager.authenticate(authenticationToken);
+
+                return AuthenticationResponse.builder()
+                        .userFullName(existiongUser.getFullName())
+                        .accessToken(authenticationUtils.generateToken(existiongUser))
+                        .authenticated(true)
+                        .build();
+            }
+        }
+        throw new DataNotFoundException("Your account does not exits!");
     }
 
     @Override
     public AuthenticationResponse introspectToken(IntrospectRequest introspectRequest) throws ParseException, JOSEException {
-        return jwtUtils.introspectToken(introspectRequest);
+        return authenticationUtils.introspectToken(introspectRequest);
     }
 
     @Override
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws TokenException, ParseException, JOSEException {
-        return jwtUtils.refreshToken(request);
+        return authenticationUtils.refreshToken(request);
     }
 
-    @Override
-    public UserOauth2Info getOauth2UserInfo(String alt, String accessToken) {
-        return jwtUtils.getOauth2UserInfo(alt, accessToken) ;
-    }
 
     @Override
     public void logout(LogoutRequest logoutRequest) throws TokenException, ParseException, JOSEException {
-        jwtUtils.logout(logoutRequest);
+        authenticationUtils.logout(logoutRequest);
+    }
+
+
+    @Override
+    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException {
+        return authenticationUtils.exchangeToken(code, loginType);
     }
 
     @Override
-    public User register(UserDTO userDTO) {
-        return null;
-    }
-
-    @Override
-    public ExchangeTokenResponse exchangeToken(String code) {
-        return jwtUtils.exchangeToken(code);
+    public String getOauth2LoginURL(String loginType) {
+        return authenticationUtils.generateAuthUrl(loginType);
     }
 }

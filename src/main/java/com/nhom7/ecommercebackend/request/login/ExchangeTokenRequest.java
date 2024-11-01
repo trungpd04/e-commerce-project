@@ -30,6 +30,8 @@ public class ExchangeTokenRequest {
     @Schema(description = "The grant type (e.g., 'authorization_code')", example = "authorization_code", required = true)
     private String grantType;
 
+    private String responseType;
+
     @Schema(description = "The redirect URI to which the response will be sent", example = "https://yourapp.com/callback", required = true)
     private String redirectUri;
 }

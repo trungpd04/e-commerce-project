@@ -1,18 +1,24 @@
 package com.nhom7.ecommercebackend.utils;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.nhom7.ecommercebackend.configuration.RsaKeyProperties;
 import com.nhom7.ecommercebackend.exception.MessageKeys;
 import com.nhom7.ecommercebackend.exception.TokenException;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
+import com.nhom7.ecommercebackend.exception.UnsupportedLoginException;
+import com.nhom7.ecommercebackend.model.AuthProvider;
 import com.nhom7.ecommercebackend.model.InvalidatedToken;
 import com.nhom7.ecommercebackend.model.Role;
 import com.nhom7.ecommercebackend.model.User;
-import com.nhom7.ecommercebackend.model.UserOauth2Info;
+import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
+import com.nhom7.ecommercebackend.response.login.UserOauth2Info;
 import com.nhom7.ecommercebackend.repository.InvalidatedTokenRepository;
 import com.nhom7.ecommercebackend.repository.RoleRepository;
-import com.nhom7.ecommercebackend.repository.outbound.OutboundLoginClient;
+import com.nhom7.ecommercebackend.repository.outbound.FacebookLoginClient;
+import com.nhom7.ecommercebackend.repository.outbound.FacebookUserInfoClient;
+import com.nhom7.ecommercebackend.repository.outbound.GoogleLoginClient;
 import com.nhom7.ecommercebackend.repository.UserRepository;
-import com.nhom7.ecommercebackend.repository.outbound.OutboundUserInfoClient;
+import com.nhom7.ecommercebackend.repository.outbound.GoogleUserInfoClient;
 import com.nhom7.ecommercebackend.request.login.ExchangeTokenRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
@@ -31,6 +37,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -39,13 +46,16 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class JwtUtils {
+public class AuthenticationUtils {
     private final RsaKeyProperties rsaKeyProperties;
     private final JwtEncoder jwtEncoder;
     private final InvalidatedTokenRepository tokenRepository;
     private final UserRepository userRepository;
-    private final OutboundLoginClient outboundLoginClient;
-    private final OutboundUserInfoClient outboundUserInfoClient;
+    private final GoogleLoginClient googleLoginClient;
+    private final GoogleUserInfoClient googleUserInfoClient;
+    private final FacebookLoginClient facebookLoginClient;
+    private final FacebookUserInfoClient facebookUserInfoClient;
+
     private final RoleRepository roleRepository;
 
     @Value("${jwt.expiration_time}")
@@ -56,16 +66,40 @@ public class JwtUtils {
 
     @NonFinal
     @Value("${oauth2.google.client_id}")
-    protected String CLIENT_ID;
+    protected String GOOGLE_CLIENT_ID;
+
     @NonFinal
     @Value("${oauth2.google.client_secret}")
-    protected String CLIENT_SECRET;
+    protected String GOOGLE_CLIENT_SECRET;
+
     @NonFinal
     @Value("${oauth2.google.grant_type}")
-    protected String GRANT_TYPE;
+    protected String GOOGLE_GRANT_TYPE;
+
     @NonFinal
     @Value("${oauth2.google.redirect_uri}")
-    protected String REDIRECT_URI;
+    protected String GOOGLE_REDIRECT_URI;
+
+    @NonFinal
+    @Value("${oauth2.facebook.client_id}")
+    protected String FACEBOOK_CLIENT_ID;
+
+    @NonFinal
+    @Value("${oauth2.facebook.client_secret}")
+    protected String FACEBOOK_CLIENT_SECRET;
+
+    @NonFinal
+    @Value("${oauth2.facebook.auth_uri}")
+    protected String FACEBOOK_AUTH_URI;
+
+    @NonFinal
+    @Value("${oauth2.facebook.grant_type}")
+    protected String FACEBOOK_RESPONSE_TYPE;
+
+    @NonFinal
+    @Value("${oauth2.facebook.redirect_uri}")
+    protected String FACEBOOK_REDIRECT_URI;
+
     public AuthenticationResponse introspectToken(IntrospectRequest introspectRequest) throws ParseException, JOSEException {
         try {
             verifyToken(false, introspectRequest.getToken());
@@ -152,29 +186,87 @@ public class JwtUtils {
         }
         return signedJWT;
     }
-    public ExchangeTokenResponse exchangeToken(String code) {
-        ExchangeTokenRequest request = ExchangeTokenRequest.builder()
-                .clientId(CLIENT_ID)
-                .clientSecret(CLIENT_SECRET)
-                .grantType(GRANT_TYPE)
-                .redirectUri(REDIRECT_URI)
-                .code(code)
-                .build();
-        ExchangeTokenResponse exchangeTokenResponse = outboundLoginClient
-                .exchangeToken(request);
-        Role role = roleRepository.findByName(Role.USER);
-        UserOauth2Info userOauth2Info = getOauth2UserInfo("json", exchangeTokenResponse.getAccessToken());
-        User user = userRepository.findByEmail(userOauth2Info.getEmail())
-                .orElseGet(() -> userRepository.save(User.builder()
+    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException {
+        loginType = loginType.trim().toLowerCase();
+
+        switch(loginType) {
+            case "google": {
+                ExchangeTokenRequest request = ExchangeTokenRequest.builder()
+                        .clientId(GOOGLE_CLIENT_ID)
+                        .clientSecret(GOOGLE_CLIENT_SECRET)
+                        .grantType(GOOGLE_GRANT_TYPE)
+                        .redirectUri(GOOGLE_REDIRECT_URI)
+                        .code(code)
+                        .build();
+                ExchangeTokenResponse exchangeTokenResponse = googleLoginClient
+                        .exchangeToken(request);
+                Role role = roleRepository.findByName(Role.USER);
+                UserOauth2Info userOauth2Info = getGoogleOauth2UserInfo("json", exchangeTokenResponse.getAccessToken());
+                User user = userRepository.findByEmail(userOauth2Info.getEmail())
+                        .orElseGet(() -> userRepository.save(User.builder()
                                 .email(userOauth2Info.getEmail())
                                 .fullName(userOauth2Info.getFamilyName() + " " + userOauth2Info.getGivenName())
-                                .profileImage(userOauth2Info.getPicture())
+                                .profileImage(userOauth2Info.getPicture().toString())
                                 .active(true)
+                                .providerId(userOauth2Info.getId())
+                                .provider(AuthProvider.google)
                                 .role(role)
-                        .build()));
-        String token = generateToken(user);
+                                .build()));
 
-        return ExchangeTokenResponse.builder().accessToken(token).build();
+
+                return AuthenticationRequest.builder()
+                        .userName(user.getEmail())
+                        .password("")
+                        .build();
+            }
+            case "facebook": {
+                ExchangeTokenRequest request = ExchangeTokenRequest.builder()
+                        .clientId(FACEBOOK_CLIENT_ID)
+                        .clientSecret(FACEBOOK_CLIENT_SECRET)
+                        .responseType(FACEBOOK_RESPONSE_TYPE)
+                        .redirectUri(FACEBOOK_REDIRECT_URI)
+                        .code(code)
+                        .build();
+                ExchangeTokenResponse exchangeTokenResponse = facebookLoginClient
+                        .exchangeToken(request);
+                Role role = roleRepository.findByName(Role.USER);
+                UserOauth2Info userOauth2Info = getFacebookOauth2UserInfo(exchangeTokenResponse.getAccessToken());
+                Object pictureObj = userOauth2Info.getPicture();
+                String picture;
+                if (pictureObj instanceof Map<?, ?> pictureData) {
+                    Object dataObj = pictureData.get("data");
+                    if (dataObj instanceof Map<?, ?> dataMap) {
+                        Object urlObj = dataMap.get("url");
+                        if (urlObj instanceof String) {
+                            picture = (String) urlObj;
+                        } else {
+                            picture = null;
+                        }
+                    } else {
+                        picture = null;
+                    }
+                } else {
+                    picture = null;
+                }
+                User user = userRepository.findByEmail(userOauth2Info.getEmail())
+                        .orElseGet(() -> userRepository.save(User.builder()
+                                .email(userOauth2Info.getEmail())
+                                .fullName(userOauth2Info.getName())
+                                .profileImage(picture)
+                                .active(true)
+                                .provider(AuthProvider.facebook)
+                                .providerId(userOauth2Info.getId())
+                                .role(role)
+                                .build()));
+
+                return AuthenticationRequest.builder()
+                        .userName(user.getEmail())
+                        .password("")
+                        .build();
+            }
+            default:
+                throw new UnsupportedLoginException("Unsupported login type: " + loginType);
+        }
     }
     private String getSubject(User user) {
         if(user.getEmail() != null) {
@@ -194,7 +286,37 @@ public class JwtUtils {
         }
         throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
     }
-    public UserOauth2Info getOauth2UserInfo(String alt, String accessToken) {
-        return outboundUserInfoClient.userInfo(alt, accessToken);
+    public UserOauth2Info getGoogleOauth2UserInfo(String alt, String accessToken) {
+        return googleUserInfoClient.userInfo(alt, accessToken);
+    }
+    public UserOauth2Info getFacebookOauth2UserInfo(String accessToken) {
+        return facebookUserInfoClient.userInfo(accessToken);
+    }
+    public String generateAuthUrl(String loginType) {
+        String url = "";
+        loginType = loginType.trim().toLowerCase(); // Normalize the login type
+
+        if ("google".equals(loginType)) {
+            GoogleAuthorizationCodeRequestUrl urlBuilder = new GoogleAuthorizationCodeRequestUrl(
+                    GOOGLE_CLIENT_ID,
+                    GOOGLE_REDIRECT_URI,
+                    Arrays.asList("email", "profile", "openid"));
+            url = urlBuilder.build();
+        } else if ("facebook".equals(loginType)) {
+            /*
+            url = String.format("https://www.facebook.com/v3.2/dialog/oauth?client_id=%s&redirect_uri=%s&scope=email,public_profile&response_type=code",
+                    facebookClientId, facebookRedirectUri);
+             */
+            url = UriComponentsBuilder
+                    .fromUriString(FACEBOOK_AUTH_URI)
+                    .queryParam("client_id", FACEBOOK_CLIENT_ID)
+                    .queryParam("redirect_uri", FACEBOOK_REDIRECT_URI)
+                    .queryParam("scope", "email,public_profile")
+                    .queryParam("response_type", FACEBOOK_RESPONSE_TYPE)
+                    .build()
+                    .toUriString();
+        }
+
+        return url;
     }
 }

@@ -63,6 +63,7 @@ public class SecurityConfig {
                 String.format("%s/products/**", API_PREFIX),
                 String.format("%s/categories/**",API_PREFIX),
                 String.format("%s/orders/checkout/vn-pay/callback", API_PREFIX),
+                String.format("%s/users/oauth2/social/callback", API_PREFIX),
                 String.format("%s/sub_categories/**",API_PREFIX),
                 String.format("%s/ratings/**", API_PREFIX),
                 String.format("%s/users/oauth2/userinfo", API_PREFIX),
@@ -84,6 +85,7 @@ public class SecurityConfig {
                 String.format("%s/users/refresh", API_PREFIX),
                 String.format("%s/users/logout", API_PREFIX),
                 String.format("%s/users/outbound/login", API_PREFIX),
+                String.format("%s/users/oauth2/login", API_PREFIX),
                 String.format("%s/users/forgot_password", API_PREFIX),
                 String.format("%s/users/reset_password", API_PREFIX)
         };
