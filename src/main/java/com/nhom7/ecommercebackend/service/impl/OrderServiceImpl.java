@@ -46,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderDetails(orderDetails);
         return orderRepository.save(newOrder);
     }
+    
     private List<OrderDetail> createOrderDetails(Order order, Cart cart) {
         return cart.getCartItems().stream().map(cartItem -> {
             Product product = cartItem.getProduct();

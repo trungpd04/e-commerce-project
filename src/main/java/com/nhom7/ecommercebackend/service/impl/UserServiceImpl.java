@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER') ")
     public User updateUser(Long userID, UserDTO updatedUserDTO) {
         User existingUser = userRepository.findById(userID)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
