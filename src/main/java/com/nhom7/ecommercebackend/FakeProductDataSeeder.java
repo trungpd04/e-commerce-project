@@ -1,20 +1,73 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
+import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.Product;
+import com.nhom7.ecommercebackend.model.ProductAttribute;
+import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.repository.CategoryRepository;
+import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
+import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
+import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
+import com.nhom7.ecommercebackend.service.CategoryService;
+import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
+import com.nhom7.ecommercebackend.service.SubCategoryService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
 public class FakeProductDataSeeder implements CommandLineRunner {
 
     private final ProductService productService;
+    private final CategoryService categoryService;
+    private final SubCategoryService subCategoryService;
+    private final ProductAttributeService productAttributeService;
+    private final List<String> categoryName = Arrays.asList("Điện thoại", "Laptop");
+    private final List<String> subCategoryName = Arrays.asList("Iphone", "Samsung", "Lenovo", "Asus");
+    private final List<String> attributes = Arrays.asList(
+            "mobile_ram",
+            "mobile_storage",
+            "mobile_screen_type",
+            "mobile_screen_size",
+            "mobile_screen_refresh_rate",
+            "mobile_battery_capacity",
+            "mobile_color",
+            "mobile_design_description",
+            "mobile_os",
+            "mobile_manufacturer",
+            "mobile_guarantee_month",
+            "laptop_ram",
+            "laptop_storage",
+            "laptop_cpu",
+            "laptop_screen_size",
+            "laptop_screen_refresh_rate",
+            "laptop_battery_capacity",
+            "laptop_color",
+            "laptop_design_description",
+            "laptop_os",
+            "laptop_manufacturer",
+            "laptop_guarantee_month"
+    );
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
@@ -35,20 +88,87 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     // Laptop models for Lenovo and Asus
     private final List<String> lenovoModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3", "Lenovo ThinkPad T14", "Lenovo Yoga Slim 7", "Lenovo Legion Y740", "Lenovo ThinkBook 15", "Lenovo IdeaPad Gaming 3", "Lenovo ThinkPad P1");
     private final List<String> asusModels  = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
+    private final CategoryRepository categoryRepository;
+    private final SubCategoryRepository subCategoryRepository;
 
 
     @Override
     public void run(String... args) throws Exception {
+        for(String categoryName : this.categoryName) {
+            try{
+                Category category = categoryService.creatCategory(
+                        CategoryDTO.builder()
+                                .name(categoryName)
+                                .build()
+                );
+                System.out.println("Category created: " + categoryName);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        for(String subcategoryName : this.subCategoryName) {
+            try{
+                if(subcategoryName == "Lenovo" || subcategoryName == "Asus"){
+                    Category category = categoryRepository.findById(2L).get();
+                    List<SubCategory> subCategories = new ArrayList<>();
+                    SubCategory subCategory = SubCategory.builder()
+                            .category(category)
+                            .name(subcategoryName)
+                            .build();
+                    subCategories.add(subCategory);
+                    category.setSubCategoryList(subCategories);
+                    categoryRepository.save(category);
+                    subCategoryRepository.save(subCategory);
+                }else{
+                    Category category = categoryRepository.findById(1L).get();
+                    List<SubCategory> subCategories = new ArrayList<>();
+                    SubCategory subCategory = SubCategory.builder()
+                            .category(category)
+                            .name(subcategoryName)
+                            .build();
+                    subCategories.add(subCategory);
+                    category.setSubCategoryList(subCategories);
+                    categoryRepository.save(category);
+                    subCategoryRepository.save(subCategory);
+                }
+                System.out.println("Category created: " + subcategoryName);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        for(String name : this.attributes) {
+            try{
+                ProductAttribute productAttribute = productAttributeService
+                        .createProductAttribute(AttributeDTO.builder()
+                                .name(name)
+                                .build());
+                System.out.println("Product Attribute created: " + name);
+            }catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
         for (int i = 0; i < 2000; i++) {
             ProductDTO productDTO = generateUniqueProduct();
             if (productDTO != null) {
                 try {
-                    productService.createProduct(productDTO);
+                    Product product = productService.createProduct(productDTO);
+
                     System.out.println("Product " + (i + 1) + " created: " + productDTO.getName());
                 } catch (Exception e) {
+
                     System.out.println("Failed to create product " + (i + 1) + ": " + e.getMessage());
                 }
             }
+        }
+    }
+
+    public List<String> listFilesUsingFilesList(String dir) throws IOException {
+        try (Stream<Path> stream = Files.list(Paths.get(dir))) {
+            return stream
+                    .filter(file -> !Files.isDirectory(file))
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .collect(Collectors.toList());
         }
     }
 
@@ -85,7 +205,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("mobile_design_description", faker.lorem().sentence()));
             attributeValues.add(createAttributeValue("mobile_os", generateRandomOs()));
             attributeValues.add(createAttributeValue("mobile_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("mobile_quantity", String.valueOf(random.nextInt(100) + 1)));
             attributeValues.add(createAttributeValue("mobile_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
 
         } else {
@@ -100,7 +219,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("laptop_design_description", faker.lorem().sentence()));
             attributeValues.add(createAttributeValue("laptop_os", generateRandomOs()));
             attributeValues.add(createAttributeValue("laptop_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("laptop_quantity", String.valueOf(random.nextInt(100) + 1)));
             attributeValues.add(createAttributeValue("laptop_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
         }
 
@@ -108,7 +226,8 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         return ProductDTO.builder()
                 .name(productName)
                 .description(faker.lorem().sentence())
-                .price(Float.parseFloat(faker.commerce().price(1000.0, 3000.0)))
+                .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000.0, 3000.0))))
+                .quantity(random.nextLong(10))
                 .thumbnail(null)
                 .categoryId(categoryId)
                 .subcategory(subcategoryIds) // Associate with the selected subcategories

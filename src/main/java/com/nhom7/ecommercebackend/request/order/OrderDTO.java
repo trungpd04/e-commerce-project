@@ -1,8 +1,6 @@
 package com.nhom7.ecommercebackend.request.order;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -14,9 +12,6 @@ import java.util.List;
 @Builder
 public class OrderDTO {
 
-    @JsonProperty("user_place_order_id")
-    //@Min(value = 1, message = "User's ID must be > 0")
-    private Long userPlaceOrderId;
 
     @JsonProperty("receiver_full_name")
     private String receiverFullName;
@@ -46,7 +41,4 @@ public class OrderDTO {
 
     @JsonProperty("coupon_code")
     private String couponCode;
-
-    @JsonProperty("cart_items")
-    private List<CartItemDTO> cartItems;
 }

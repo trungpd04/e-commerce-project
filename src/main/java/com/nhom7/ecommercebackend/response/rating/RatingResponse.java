@@ -28,7 +28,7 @@ public class RatingResponse {
 
     public static RatingResponse fromRating(Rating rating) {
         return RatingResponse.builder()
-                .userFullName(rating.getUser().getFullName())
+                .userFullName(rating.getId().getUser().getFullName())
                 .rate(rating.getRate())
                 .comment(rating.getComment())
                 .createdAt(rating.getCreatedAt())

@@ -37,12 +37,15 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
+
         if (!productDTO.getName().isBlank() && productRepository.existsByName(productDTO.getName())) {
             throw new DataIntegrityViolationException("Product name already exists!");
         }
+
         Category category = categoryRepository.findById(productDTO.getCategoryId())
                 .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
         Product newProduct = buildProduct(productDTO);
+
         return productRepository.save(newProduct);
     }
     @Override
@@ -109,7 +112,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         int size = product.getProductImages().size();
         if(size >= ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
-            throw new InvalidParamException(STR."Number of images must be <= \{ProductImage.MAXIMUM_IMAGES_PER_PRODUCT}");
+            throw new InvalidParamException("Number of images must be <= " + ProductImage.MAXIMUM_IMAGES_PER_PRODUCT);
         }
         if(product.getThumbnail() == null) {
             product.setThumbnail(productImage.getImageUrl());
@@ -152,6 +155,7 @@ public class ProductServiceImpl implements ProductService {
                 .description(productDTO.getDescription())
                 .thumbnail(productDTO.getThumbnail())
                 .price(productDTO.getPrice())
+                .quantity(productDTO.getQuantity())
                 .subcategory(subCategories)
                 .build();
         // Prepare to map the attributes from the DTO

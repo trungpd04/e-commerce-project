@@ -1,14 +1,11 @@
 package com.nhom7.ecommercebackend.service;
 
 import com.nhom7.ecommercebackend.model.Cart;
-import com.nhom7.ecommercebackend.request.cart.CartDTO;
 
 public interface CartService {
-    Cart addToCart(Long productId, Long cartId);
-    Cart getCardByUserId(Long userId);
-    Cart createCart(CartDTO cartDTO);
-    Cart removeItem(Long productId, Long cartId);
-//    Cart addToCart(CartItemDTO cartItemDTO);
-    Cart updateCart(CartDTO cartDTO);
+    Cart addToCart(Long productId);
+    Cart updateQuantity(Long productId, int quantity);
+    Cart getMyCart();
+    Cart removeItem(Long productId);
     void deleteCartByUserId(Long userId);
 }

@@ -25,10 +25,12 @@ import com.nimbusds.jose.JOSEException;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +51,7 @@ public class UserController {
 
     @Value("${app.cors.allowedOrigins}")
     private String ALLOW_ORIGIN;
+
     @PostMapping("/register")
     public ApiResponse registerUser(@RequestBody UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         User newUser = userService.register(userDTO);
@@ -127,23 +130,19 @@ public class UserController {
     ) throws ParseException, JOSEException {
         return authenticateService.introspectToken(introspectRequest);
     }
-    @PostMapping("/outbound/login")
-    public ApiResponse exchangeToken(
-            @RequestParam String code
-    ) {
-        ExchangeTokenResponse response = authenticateService.exchangeToken(code);
-        AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
-                .accessToken(response.getAccessToken())
-                .build();
+    @PostMapping("/oauth2/login")
+    public ApiResponse oauth2Login(@RequestParam("login_type") String loginType) {
+        String url = authenticateService.getOauth2LoginURL(loginType);
         return ApiResponse.builder()
+                .data(url)
                 .status(HTTP_OK)
-                .message("Login successfully!")
-                .data(authenticationResponse)
+                .message("Get oath2 login URL successfully!")
                 .build();
     }
+
     @GetMapping("/orders/{userId}")
     @PreAuthorize("hasRole('USER')")
-    @SecurityRequirement(name = "bearer-token")
+    @SecurityRequirement(name = "bearer-key")
     public ApiResponse getMyOrders
             (
                     @PathVariable("userId") Long userId,
@@ -162,20 +161,22 @@ public class UserController {
                 .data(orderListResponse)
                 .build();
     }
-    @GetMapping("/oauth2/userinfo")
-    public ApiResponse getOauth2UserInfo(
-            @RequestParam("alt") String alt,
-            @RequestParam("access_token") String accessToken
-            ) {
+    @GetMapping("/oauth2/social/callback")
+    public ApiResponse callback(
+            @RequestParam("code") String code,
+            @RequestParam("login_type") String loginType
+    ) throws Exception {
+        AuthenticationRequest request = authenticateService.exchangeToken(code, loginType);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Get Oauth2 User Info successfully!")
-                .data(authenticateService.getOauth2UserInfo(alt, accessToken))
+                .message("Login successfully!")
+                .data(this.login(request))
                 .build();
     }
+
     @GetMapping("/detail")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-token")
     public ApiResponse getUserDetail() {
         return ApiResponse.builder()
                 .status(HTTP_OK)
@@ -183,9 +184,10 @@ public class UserController {
                 .data(userService.getUserDetail())
                 .build();
     }
+
     @GetMapping("")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-token")
     public ApiResponse getAllUser(
             @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(value = "size", required = false, defaultValue = "10") int size,
@@ -207,8 +209,8 @@ public class UserController {
                 .data(userListResponse)
                 .build();
     }
-    @PostMapping("/createPassword")
-    @SecurityRequirement(name = "bearer-token")
+    @PostMapping("/create_password")
+    @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse createPassword(@RequestBody PasswordCreationRequest request) throws PasswordCreationException {
         userService.createPassword(request);

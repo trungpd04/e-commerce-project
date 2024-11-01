@@ -89,18 +89,4 @@ public class CategoryController {
                 .message("Add subcategory successfully!")
                 .build();
     }
-    private CategoryDTO toCategoryDTO(Category newCategory) {
-        if(!newCategory.getSubCategoryList().isEmpty()) {
-            List<String> subCategoryName = new ArrayList<>();
-            newCategory.getSubCategoryList().forEach(subCategory -> {
-                subCategoryName.add(subCategory.getName());
-            });
-            return CategoryDTO.builder()
-                    .name(newCategory.getName())
-                    .subCategories(subCategoryName)
-                    .build();
-        }
-        return CategoryDTO.builder()
-                .name(newCategory.getName()).subCategories(null).build();
-    }
 }
