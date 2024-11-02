@@ -39,6 +39,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -186,18 +188,20 @@ public class AuthenticationUtils {
         }
         return signedJWT;
     }
-    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException {
+    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
         loginType = loginType.trim().toLowerCase();
 
         switch(loginType) {
             case "google": {
+                String result = java.net.URLDecoder.decode(code, StandardCharsets.UTF_8);
                 ExchangeTokenRequest request = ExchangeTokenRequest.builder()
                         .clientId(GOOGLE_CLIENT_ID)
                         .clientSecret(GOOGLE_CLIENT_SECRET)
                         .grantType(GOOGLE_GRANT_TYPE)
                         .redirectUri(GOOGLE_REDIRECT_URI)
-                        .code(code)
+                        .code(result)
                         .build();
+
                 ExchangeTokenResponse exchangeTokenResponse = googleLoginClient
                         .exchangeToken(request);
                 Role role = roleRepository.findByName(Role.USER);
@@ -213,19 +217,19 @@ public class AuthenticationUtils {
                                 .role(role)
                                 .build()));
 
-
                 return AuthenticationRequest.builder()
                         .userName(user.getEmail())
                         .password("")
                         .build();
             }
             case "facebook": {
+                String result = java.net.URLDecoder.decode(code, StandardCharsets.UTF_8);
                 ExchangeTokenRequest request = ExchangeTokenRequest.builder()
                         .clientId(FACEBOOK_CLIENT_ID)
                         .clientSecret(FACEBOOK_CLIENT_SECRET)
                         .responseType(FACEBOOK_RESPONSE_TYPE)
                         .redirectUri(FACEBOOK_REDIRECT_URI)
-                        .code(code)
+                        .code(result)
                         .build();
                 ExchangeTokenResponse exchangeTokenResponse = facebookLoginClient
                         .exchangeToken(request);
@@ -294,6 +298,7 @@ public class AuthenticationUtils {
     }
     public String generateAuthUrl(String loginType) {
         String url = "";
+
         loginType = loginType.trim().toLowerCase(); // Normalize the login type
 
         if ("google".equals(loginType)) {
@@ -303,10 +308,6 @@ public class AuthenticationUtils {
                     Arrays.asList("email", "profile", "openid"));
             url = urlBuilder.build();
         } else if ("facebook".equals(loginType)) {
-            /*
-            url = String.format("https://www.facebook.com/v3.2/dialog/oauth?client_id=%s&redirect_uri=%s&scope=email,public_profile&response_type=code",
-                    facebookClientId, facebookRedirectUri);
-             */
             url = UriComponentsBuilder
                     .fromUriString(FACEBOOK_AUTH_URI)
                     .queryParam("client_id", FACEBOOK_CLIENT_ID)

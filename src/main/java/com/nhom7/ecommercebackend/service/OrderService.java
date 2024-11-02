@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.UUID;
 
 public interface OrderService {
+
     Order createOrder(OrderDTO orderDTO);
     Order findOrderById(UUID orderId);
     void deleteOrder(UUID orderId); // just soft delete
     Page<OrderResponse> getAllOrder(String keyword, PageRequest pageRequest);
+    Page<OrderResponse> getMyOrders(String keyword, PageRequest pageRequest);
 }

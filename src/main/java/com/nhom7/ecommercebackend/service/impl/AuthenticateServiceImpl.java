@@ -17,8 +17,11 @@ import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.Optional;
@@ -65,6 +68,11 @@ public class AuthenticateServiceImpl implements AuthenticateService {
             && Objects.isNull(existiongUser.getProvider())
             && Objects.isNull(existiongUser.getProviderId())) {
 
+            UsernamePasswordAuthenticationToken token = new
+                    UsernamePasswordAuthenticationToken( subject, loginRequest.getPassword() , user.get().getAuthorities());
+
+            authenticationManager.authenticate(token);
+
             return AuthenticationResponse.builder()
                     .userFullName(existiongUser.getFullName())
                     .accessToken(authenticationUtils.generateToken(existiongUser))
@@ -74,6 +82,14 @@ public class AuthenticateServiceImpl implements AuthenticateService {
             if (Objects.isNull(existiongUser.getPassword())
                     && !Objects.isNull(existiongUser.getProvider())
                     && !Objects.isNull(existiongUser.getProviderId())) {
+
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                subject,
+                                null,
+                                existiongUser.getAuthorities()
+                        );
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
                 return AuthenticationResponse.builder()
                         .userFullName(existiongUser.getFullName())
@@ -103,7 +119,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
 
 
     @Override
-    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException {
+    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
         return authenticationUtils.exchangeToken(code, loginType);
     }
 
