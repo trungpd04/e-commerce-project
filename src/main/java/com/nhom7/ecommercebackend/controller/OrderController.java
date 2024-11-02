@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.springframework.http.HttpStatus.OK;
 
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/orders")

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("${api.prefix}/items")

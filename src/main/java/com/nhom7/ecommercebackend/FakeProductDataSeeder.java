@@ -111,25 +111,29 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 if(subcategoryName == "Lenovo" || subcategoryName == "Asus"){
                     Category category = categoryRepository.findById(2L).get();
                     List<SubCategory> subCategories = new ArrayList<>();
-                    SubCategory subCategory = SubCategory.builder()
-                            .category(category)
-                            .name(subcategoryName)
-                            .build();
+                    SubCategory subCategory = null;
+                    try{
+                        subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subcategoryName).build());
+                        subCategory.setCategory(category);
+                    }catch (Exception e) {
+                        System.out.println("Subcategory created: " + subcategoryName);
+                    }
                     subCategories.add(subCategory);
                     category.setSubCategoryList(subCategories);
                     categoryRepository.save(category);
-                    subCategoryRepository.save(subCategory);
                 }else{
                     Category category = categoryRepository.findById(1L).get();
                     List<SubCategory> subCategories = new ArrayList<>();
-                    SubCategory subCategory = SubCategory.builder()
-                            .category(category)
-                            .name(subcategoryName)
-                            .build();
+                    SubCategory subCategory = null;
+                    try{
+                        subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subcategoryName).build());
+                        subCategory.setCategory(category);
+                    }catch (Exception e) {
+                        System.out.println("Subcategory created: " + subcategoryName);
+                    }
                     subCategories.add(subCategory);
                     category.setSubCategoryList(subCategories);
                     categoryRepository.save(category);
-                    subCategoryRepository.save(subCategory);
                 }
                 System.out.println("Category created: " + subcategoryName);
             }catch (Exception e) {

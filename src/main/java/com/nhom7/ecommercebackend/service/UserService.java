@@ -13,10 +13,16 @@ import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 
-public interface UserService {
+public interface UserService extends UserDetailsService {
+    @Override
+    UserDetails loadUserByUsername(String username) throws UsernameNotFoundException;
+
     User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException;
     User updateUser(Long userId, UserDTO userDTO);
     void deleteUser(Long userId);
@@ -28,4 +34,5 @@ public interface UserService {
     String updateResetPasswordToken(String email);
     User getByResetPasswordToken(String token) throws TokenException;
     void updatePassword(User user, ResetPasswordDTO dto) throws TokenException, PasswordCreationException;
+    void changeProfileImage(Long userId, String image);
 }

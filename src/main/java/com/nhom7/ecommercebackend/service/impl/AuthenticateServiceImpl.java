@@ -17,8 +17,6 @@ import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -35,70 +33,52 @@ public class AuthenticateServiceImpl implements AuthenticateService {
     private final AuthenticationManager authenticationManager;
 
     @Override
-    public AuthenticationResponse login(AuthenticationRequest loginRequest) throws PermissionDenyException {
+    public AuthenticationResponse login(AuthenticationRequest loginRequest) throws PermissionDenyException, UnsupportedLoginException {
         Optional<User> user = Optional.empty();
         String subject = null;
         if(!loginRequest.getUserName().isBlank()) {
-            Optional<User> userEmailOptional = userRepository.findByEmail(loginRequest.getUserName());
+            Optional<User> userEmailOptional = userRepository.findByEmailAndPasswordNotNull(loginRequest.getUserName());
             if(userEmailOptional.isPresent()) {
                 if(userEmailOptional.get().isActive()) {
+                    if(Objects.isNull(userEmailOptional.get().getPassword())) {
+                        throw new UnsupportedLoginException("Wrong password or username!");
+                    }
                     user = userEmailOptional;
                     subject = user.get().getEmail();
                 }else{
                     throw new PermissionDenyException("Your account has bean lock!");
                 }
             } else {
-                Optional<User> userPhoneOptional = userRepository.findByPhoneNumber(loginRequest.getUserName());
+                Optional<User> userPhoneOptional = userRepository.findByPhoneNumberAndPasswordNotNull(loginRequest.getUserName());
                 if (userPhoneOptional.isPresent()) {
                     if (userPhoneOptional.get().isActive()) {
+                        if(Objects.isNull(userPhoneOptional.get().getPassword())) {
+                            throw new UnsupportedLoginException("Wrong password or username!");
+                        }
                         user = userPhoneOptional;
                         subject = user.get().getPhoneNumber();
                     } else {
                         throw new PermissionDenyException("Your account has bean lock!");
                     }
                 } else {
-                    throw new DataNotFoundException("Your account does not exits!");
+                    throw new DataNotFoundException("Wrong password or username!");
                 }
             }
         }
 
-        User existiongUser = user.get();
+        User existingUser = user.get();
 
-        if(!Objects.isNull(existiongUser.getPassword())
-            && Objects.isNull(existiongUser.getProvider())
-            && Objects.isNull(existiongUser.getProviderId())) {
 
-            UsernamePasswordAuthenticationToken token = new
-                    UsernamePasswordAuthenticationToken( subject, loginRequest.getPassword() , user.get().getAuthorities());
+        UsernamePasswordAuthenticationToken token =
+            new UsernamePasswordAuthenticationToken(subject, loginRequest.getPassword(), existingUser.getAuthorities());
 
-            authenticationManager.authenticate(token);
+        authenticationManager.authenticate(token);
 
-            return AuthenticationResponse.builder()
-                    .userFullName(existiongUser.getFullName())
-                    .accessToken(authenticationUtils.generateToken(existiongUser))
-                    .authenticated(true)
-                    .build();
-        } else {
-            if (Objects.isNull(existiongUser.getPassword())
-                    && !Objects.isNull(existiongUser.getProvider())
-                    && !Objects.isNull(existiongUser.getProviderId())) {
-
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(
-                                subject,
-                                null,
-                                existiongUser.getAuthorities()
-                        );
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                return AuthenticationResponse.builder()
-                        .userFullName(existiongUser.getFullName())
-                        .accessToken(authenticationUtils.generateToken(existiongUser))
-                        .authenticated(true)
-                        .build();
-            }
-        }
-        throw new DataNotFoundException("Your account does not exits!");
+        return AuthenticationResponse.builder()
+                .authenticated(true)
+                .accessToken(authenticationUtils.generateToken(existingUser))
+                .userFullName(existingUser.getFullName())
+                .build();
     }
 
     @Override
@@ -119,7 +99,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
 
 
     @Override
-    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
+    public AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
         return authenticationUtils.exchangeToken(code, loginType);
     }
 
@@ -127,4 +107,5 @@ public class AuthenticateServiceImpl implements AuthenticateService {
     public String getOauth2LoginURL(String loginType) {
         return authenticationUtils.generateAuthUrl(loginType);
     }
+
 }

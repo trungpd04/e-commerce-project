@@ -16,10 +16,10 @@ import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 
 public interface AuthenticateService {
-    AuthenticationResponse login(AuthenticationRequest loginRequest) throws PermissionDenyException;
+    AuthenticationResponse login(AuthenticationRequest loginRequest) throws PermissionDenyException, UnsupportedLoginException;
     AuthenticationResponse introspectToken(IntrospectRequest introspectRequest) throws ParseException, JOSEException;
     AuthenticationResponse refreshToken(RefreshTokenRequest request) throws TokenException, ParseException, JOSEException;
     void logout(LogoutRequest logoutRequest) throws TokenException, ParseException, JOSEException;
-    AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException;
+    AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException;
     String getOauth2LoginURL(String loginType);
 }

@@ -38,8 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.springframework.http.HttpStatus.*;
+
 
 @RestController
 @RequestMapping("${api.prefix}/products")
@@ -140,7 +141,7 @@ public class ProductController {
         files = files == null ? new ArrayList<MultipartFile>() : files;
         if (files.size() > 5) {
             return ApiResponse.builder()
-                    .status(HTTP_BAD_REQUEST)
+                    .status(BAD_REQUEST.value())
                     .message("One product have max 5 images")
                     .build();
         }
@@ -151,14 +152,14 @@ public class ProductController {
             }
             if (file.getSize() > 10 * 1024 * 1024) { // Kích thước > 10MB
                 return ApiResponse.builder()
-                        .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                        .status(PAYLOAD_TOO_LARGE.value())
                         .message("File too large! > 10mb")
                         .build();
             }
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 return ApiResponse.builder()
-                        .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value())
+                        .status(UNSUPPORTED_MEDIA_TYPE.value())
                         .message("File is not a image!")
                         .build();
             }

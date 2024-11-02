@@ -2,8 +2,10 @@ package com.nhom7.ecommercebackend.configuration;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.MessageKeys;
+import com.nhom7.ecommercebackend.model.AuthProvider;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.repository.UserRepository;
+import com.nhom7.ecommercebackend.service.UserService;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -11,7 +13,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,14 +23,14 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -37,12 +38,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 @Configuration
@@ -53,10 +49,40 @@ public class SecurityConfig {
     private final RsaKeyProperties rsaKeyProperties;
     private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
     private final CustomBearerTokenAccessDeniedHandler customBearerTokenAccessDeniedHandler;
-    private final UserRepository userRepository;
-
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
     @Value("${api.prefix}")
     protected String API_PREFIX;
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        return subject -> {
+//          org.springframework.security.core.context.SecurityContext context = SecurityContextHolder.getContext();
+//            Object object = context.getAuthentication().getDetails();
+//            if(object instanceof UserDetails) {
+//                User user = (User) object;
+//                String userName = user.getUsername();
+//                AuthProvider provider = user.getProvider();
+//                String providerId = user.getProviderId();
+//                Optional<User> googleUser = userRepository.findByProviderAndProviderId(provider, providerId);
+//                if(googleUser.isPresent()) {
+//                    return googleUser.get();
+//                }
+//                Optional<User> facebookUser = userRepository.findByProviderAndProviderId(provider, providerId);
+//                if(facebookUser.isPresent()) {
+//                    return facebookUser.get();
+//                }
+//                Optional<User> userWithEmail = userRepository.findByEmail(userName);
+//                if(userWithEmail.isPresent()) {
+//                    return userWithEmail.get();
+//                }
+//                Optional<User> userWithPhoneNumber = userRepository.findByProviderAndProviderId(provider, providerId);
+//                if(userWithPhoneNumber.isPresent()) {
+//                    return userWithPhoneNumber.get();
+//                }
+//            }
+//            throw new UsernameNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
+//        };
+//    }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         final String[] PUBLIC_ENDPOINT_GET = {
@@ -102,25 +128,8 @@ public class SecurityConfig {
         );
         return httpSecurity.build();
     }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return subject -> {
-            Optional<User> existingEmailUser = userRepository.findByEmail(subject);
-            if(existingEmailUser.isPresent()){
-                return existingEmailUser.get();
-            }
-            Optional<User> existingPhoneNumberUser = userRepository.findByPhoneNumber(subject);
-            if(existingPhoneNumberUser.isPresent()) {
-                return existingPhoneNumberUser.get();
-            }
-            throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
-        };
-    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -128,8 +137,8 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        authenticationProvider.setUserDetailsService(userService);
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
         return authenticationProvider;
     }
     @Bean
