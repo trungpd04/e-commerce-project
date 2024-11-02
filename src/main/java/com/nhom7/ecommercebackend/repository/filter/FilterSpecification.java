@@ -20,8 +20,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
     public Predicate toPredicate(Root<Product> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
         if (!filter.getAttributeValueMap().isEmpty()) {
-            Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-            Join<Product, Category> productCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
             for (Map.Entry<String, String> attributeValue : filter.getAttributeValueMap().entrySet()) {
                 if(attributeValue.getKey().equals("page")
                         || attributeValue.getKey().equals("size")
@@ -30,6 +28,8 @@ public class FilterSpecification<Product> implements Specification<Product> {
                 ) {
                     continue;
                 }
+                Join<Product, SubCategory> productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
+                Join<Product, Category> productCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
                 if (attributeValue.getKey().equals("search") && !attributeValue.getValue().contains("-")) {
                     String keyword = "%" + attributeValue.getValue().toLowerCase().trim() + "%";
                     Predicate keywordFilter = criteriaBuilder.or(
@@ -108,6 +108,7 @@ public class FilterSpecification<Product> implements Specification<Product> {
                     }
                 }
             }
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         }
         return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }

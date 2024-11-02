@@ -2,7 +2,6 @@ package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductAttribute;
 import com.nhom7.ecommercebackend.model.ProductImage;
 import com.nhom7.ecommercebackend.repository.filter.Filter;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
@@ -11,11 +10,11 @@ import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.product.ProductDetailResponse;
 import com.nhom7.ecommercebackend.response.product.ProductListResponse;
 import com.nhom7.ecommercebackend.response.product.ProductResponse;
-import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
 import com.nhom7.ecommercebackend.utils.FileUtils;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
@@ -50,8 +49,18 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("")
+    @Operation(summary = "Get all products with optional filters")
     public ApiResponse getAllProductsFilter(
-            @RequestParam(required = false) Map<String, String> attributeValue,
+            @Parameter(
+                    description = "Lọc sản phẩm theo 1 hoặc nhiều thuộc tính. ( Dùng account Admin để xem tất cả các thuộc tính hiện có  ) " + "\n" +
+                            "Example keys: `mobile_storage`, `laptop_ram`, `category_id`, `subcategory_id`. " + "\n" +
+                            "Có thể lọc theo khoảng hoặc có thể lọc theo giá trị cố định tùy vào mục đích và từng thuộc tính. " + "\n" +
+                            "Example: `{ \"mobile_ram\" : \"4-10\" }`, `{ \"mobile_storage\" : \"128\" }`, `{ \"laptop_ram\" : \"16\" }`, `{ \"category_id\" : \"1\" }`, `{ \"subcategory_id\" : \"1\" }`.",
+                    in = ParameterIn.QUERY,
+                    name = "attributeValue"
+//                    example = "{ \"mobile_ram\" : \"4-10\" }"
+            )
+            @RequestParam(defaultValue = "") Map<String, String> attributeValue,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
             @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,

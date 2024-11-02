@@ -32,11 +32,10 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
     private final UserUtil userUtil;
-    private final UserRepository userRepository;
+
 
     @Override
     @Transactional
@@ -126,6 +125,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderResponse> getAllOrder(String keyword, PageRequest pageRequest) {
+        Page<Order> orderResponsePage = orderRepository.findAll(keyword, pageRequest);
+        return orderResponsePage.map(OrderResponse::fromOrder);
+    }
+
+    @Override
+    public Page<OrderResponse> getMyOrders(String keyword, PageRequest pageRequest) {
         Page<Order> orderResponsePage = orderRepository.findAll(keyword, pageRequest);
         return orderResponsePage.map(OrderResponse::fromOrder);
     }

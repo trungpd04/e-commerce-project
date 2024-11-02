@@ -13,24 +13,21 @@ import com.nhom7.ecommercebackend.request.user.ResetPasswordDTO;
 import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
-import com.nhom7.ecommercebackend.response.login.ExchangeTokenResponse;
 import com.nhom7.ecommercebackend.response.order.OrderListResponse;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.response.user.UserListResponse;
 import com.nhom7.ecommercebackend.service.AuthenticateService;
 import com.nhom7.ecommercebackend.service.EmailService;
+import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.service.UserService;
 import com.nimbusds.jose.JOSEException;
-import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +45,7 @@ public class UserController {
     private final AuthenticateService authenticateService;
     private final UserService userService;
     private final EmailService emailService;
+    private final OrderService orderService;
 
     @Value("${app.cors.allowedOrigins}")
     private String ALLOW_ORIGIN;
@@ -70,6 +68,26 @@ public class UserController {
                 .status(HTTP_OK)
                 .message("Register User successfully!")
                 .data(updatedUser)
+                .build();
+    }
+    @GetMapping("/my-order")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse getMyOrder(
+            @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword,
+            @RequestParam(value = "size", defaultValue = "5", required = false) int size,
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page
+    ) {
+        PageRequest request = PageRequest.of(page, size);
+        Page<OrderResponse> existingOrders = orderService.getMyOrders(keyword, request);
+        OrderListResponse orderListResponse = OrderListResponse.builder()
+                .orders(existingOrders.getContent())
+                .totalPages(existingOrders.getTotalPages())
+                .build();
+        return ApiResponse.builder()
+                .message("Get all order successfully!")
+                .status(HTTP_OK)
+                .data(orderListResponse)
                 .build();
     }
     @PreAuthorize("hasRole('ADMIN')")
