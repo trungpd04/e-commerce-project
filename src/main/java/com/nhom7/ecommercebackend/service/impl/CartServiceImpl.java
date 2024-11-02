@@ -10,7 +10,7 @@ import com.nhom7.ecommercebackend.repository.CartItemRepository;
 import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.service.CartService;
-import com.nhom7.ecommercebackend.utils.UserUtil;
+import com.nhom7.ecommercebackend.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +26,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
-    private final UserUtil userUtil;
+    private final SecurityUtils userUtil;
 
     @Override
     @Transactional

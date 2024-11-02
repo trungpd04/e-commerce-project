@@ -13,8 +13,9 @@ import lombok.Data;
 public class AuthenticationRequest {
 
     @JsonProperty("user_name")
-    @NotNull
+    @NotNull(message = "User's name could not be null!")
     private String userName;
 
+    @NotNull(message = "Password could not be null!")
     private String password;
 }

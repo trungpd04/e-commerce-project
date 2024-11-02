@@ -3,6 +3,7 @@ package com.nhom7.ecommercebackend.controller;
 import com.nhom7.ecommercebackend.exception.PasswordCreationException;
 import com.nhom7.ecommercebackend.exception.PermissionDenyException;
 import com.nhom7.ecommercebackend.exception.TokenException;
+import com.nhom7.ecommercebackend.exception.UnsupportedLoginException;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
@@ -21,21 +22,32 @@ import com.nhom7.ecommercebackend.service.AuthenticateService;
 import com.nhom7.ecommercebackend.service.EmailService;
 import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.service.UserService;
+import com.nhom7.ecommercebackend.utils.FileUtils;
+import com.nhom7.ecommercebackend.utils.SecurityUtils;
 import com.nimbusds.jose.JOSEException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.springframework.http.HttpStatus.*;
+
 
 @RestController
 @RequestMapping("${api.prefix}/users")
@@ -46,6 +58,7 @@ public class UserController {
     private final UserService userService;
     private final EmailService emailService;
     private final OrderService orderService;
+    private final SecurityUtils userUtil;
 
     @Value("${app.cors.allowedOrigins}")
     private String ALLOW_ORIGIN;
@@ -65,10 +78,69 @@ public class UserController {
     public ApiResponse updateUser(@PathVariable("userId") Long userId, @RequestBody UserDTO userDTO) throws PermissionDenyException {
         User updatedUser = userService.updateUser(userId, userDTO);
         return ApiResponse.builder()
-                .status(HTTP_OK)
+                .status(BAD_REQUEST.value())
                 .message("Register User successfully!")
                 .data(updatedUser)
                 .build();
+    }
+    @PostMapping(value = "/upload_profile_image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse uploadProfileImage(
+            @RequestParam("file") MultipartFile file
+    ) throws Exception {
+        User loginUser = userUtil.getLoggedInUser();
+        if (file == null || file.isEmpty()) {
+            return
+                    ApiResponse.builder()
+                            .message("Image file is required.")
+                            .status(BAD_REQUEST.value())
+                            .build();
+        }
+
+        if (file.getSize() > 10 * 1024 * 1024) { // 10MB
+            return ApiResponse.builder()
+                            .message("Image file size exceeds the allowed limit of 10MB.")
+                            .status(PAYLOAD_TOO_LARGE.value())
+                            .build();
+        }
+
+
+        // Store file and get filename
+        String oldFileName = loginUser.getProfileImage();
+        String imageName = FileUtils.storeFile(file);
+
+        userService.changeProfileImage(loginUser.getId(), imageName);
+        // Delete old file if exists
+        if (!StringUtils.isEmpty(oldFileName)) {
+            FileUtils.deleteFile(oldFileName);
+        }
+        return ApiResponse.builder()
+                .message("Upload profile image successfully")
+                .status(CREATED.value())
+                .data(imageName) // Return the filename or image URL
+                .build();
+    }
+    @SecurityRequirement(name = "bearer-key")
+    @GetMapping("/profile_images/{imageName}")
+    @PreAuthorize("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> viewImage(@PathVariable String imageName) {
+        try {
+            java.nio.file.Path imagePath = Paths.get("uploads/"+imageName);
+            UrlResource resource = new UrlResource(imagePath.toUri());
+
+            if (resource.exists()) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(resource);
+            } else {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(new UrlResource(Paths.get("uploads/default-profile-image.jpeg").toUri()));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
     @GetMapping("/my-order")
     @PreAuthorize("hasRole('USER')")
@@ -114,7 +186,7 @@ public class UserController {
     @PostMapping("/login")
     public ApiResponse login(
             @RequestBody AuthenticationRequest loginRequest
-            ) throws PermissionDenyException {
+            ) throws PermissionDenyException, UnsupportedLoginException {
         AuthenticationResponse loginResponse = authenticateService.login(loginRequest);
         return ApiResponse.builder()
                 .status(HTTP_OK)
@@ -157,7 +229,6 @@ public class UserController {
                 .message("Get oath2 login URL successfully!")
                 .build();
     }
-
     @GetMapping("/orders/{userId}")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
@@ -184,8 +255,12 @@ public class UserController {
             @RequestParam("code") String code,
             @RequestParam("login_type") String loginType
     ) throws Exception {
-        AuthenticationRequest request = authenticateService.exchangeToken(code, loginType);
-        return this.login(request);
+        AuthenticationResponse request = authenticateService.exchangeToken(code, loginType);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Login successfully!")
+                .data(request)
+                .build();
     }
 
     @GetMapping("/detail")
@@ -254,7 +329,7 @@ public class UserController {
             userService.updatePassword(existingUser, dto);
         } catch (TokenException | PasswordCreationException e) {
             return ApiResponse.builder()
-                    .status(HTTP_BAD_REQUEST)
+                    .status(BAD_REQUEST.value())
                     .message(e.getMessage())
                     .build();
         }

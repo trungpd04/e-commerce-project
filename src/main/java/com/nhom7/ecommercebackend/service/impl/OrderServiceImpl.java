@@ -3,15 +3,13 @@ package com.nhom7.ecommercebackend.service.impl;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.MessageKeys;
 import com.nhom7.ecommercebackend.model.*;
-import com.nhom7.ecommercebackend.repository.CartRepository;
 import com.nhom7.ecommercebackend.repository.OrderRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
-import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
-import com.nhom7.ecommercebackend.utils.UserUtil;
+import com.nhom7.ecommercebackend.utils.SecurityUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
-    private final UserUtil userUtil;
+    private final SecurityUtils userUtil;
 
 
     @Override

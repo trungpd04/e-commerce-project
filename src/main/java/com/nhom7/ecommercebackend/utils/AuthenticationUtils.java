@@ -10,7 +10,6 @@ import com.nhom7.ecommercebackend.model.AuthProvider;
 import com.nhom7.ecommercebackend.model.InvalidatedToken;
 import com.nhom7.ecommercebackend.model.Role;
 import com.nhom7.ecommercebackend.model.User;
-import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.response.login.UserOauth2Info;
 import com.nhom7.ecommercebackend.repository.InvalidatedTokenRepository;
 import com.nhom7.ecommercebackend.repository.RoleRepository;
@@ -121,6 +120,18 @@ public class AuthenticationUtils {
                 .build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
     }
+    public String generateTokenForOauth2User(User user) {
+        JwtClaimsSet jwtClaimsSet = JwtClaimsSet.builder()
+                .id(UUID.randomUUID().toString())
+                .subject(user.getProviderId())
+                .issuer("nhom7")
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plus(EXPIRATION_TIME, ChronoUnit.SECONDS))
+                .claim("scope", buildRole(user))
+                .build();
+        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwtClaimsSet)).getTokenValue();
+    }
+
     private String buildRole(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if(!CollectionUtils.isEmpty(user.getAuthorities())) {
@@ -188,7 +199,7 @@ public class AuthenticationUtils {
         }
         return signedJWT;
     }
-    public AuthenticationRequest exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
+    public AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
         loginType = loginType.trim().toLowerCase();
 
         switch(loginType) {
@@ -205,8 +216,10 @@ public class AuthenticationUtils {
                 ExchangeTokenResponse exchangeTokenResponse = googleLoginClient
                         .exchangeToken(request);
                 Role role = roleRepository.findByName(Role.USER);
+
                 UserOauth2Info userOauth2Info = getGoogleOauth2UserInfo("json", exchangeTokenResponse.getAccessToken());
-                User user = userRepository.findByEmail(userOauth2Info.getEmail())
+
+                User user = userRepository.findByProviderAndProviderId(AuthProvider.google, userOauth2Info.getId())
                         .orElseGet(() -> userRepository.save(User.builder()
                                 .email(userOauth2Info.getEmail())
                                 .fullName(userOauth2Info.getFamilyName() + " " + userOauth2Info.getGivenName())
@@ -217,9 +230,10 @@ public class AuthenticationUtils {
                                 .role(role)
                                 .build()));
 
-                return AuthenticationRequest.builder()
-                        .userName(user.getEmail())
-                        .password("")
+                return AuthenticationResponse.builder()
+                        .userFullName(user.getFullName())
+                        .accessToken(generateTokenForOauth2User(user))
+                        .authenticated(true)
                         .build();
             }
             case "facebook": {
@@ -252,7 +266,7 @@ public class AuthenticationUtils {
                 } else {
                     picture = null;
                 }
-                User user = userRepository.findByEmail(userOauth2Info.getEmail())
+                User user = userRepository.findByProviderAndProviderId(AuthProvider.facebook, userOauth2Info.getId())
                         .orElseGet(() -> userRepository.save(User.builder()
                                 .email(userOauth2Info.getEmail())
                                 .fullName(userOauth2Info.getName())
@@ -263,9 +277,10 @@ public class AuthenticationUtils {
                                 .role(role)
                                 .build()));
 
-                return AuthenticationRequest.builder()
-                        .userName(user.getEmail())
-                        .password("")
+                return AuthenticationResponse.builder()
+                        .userFullName(user.getFullName())
+                        .accessToken(generateTokenForOauth2User(user))
+                        .authenticated(true)
                         .build();
             }
             default:
@@ -280,11 +295,11 @@ public class AuthenticationUtils {
         }
     }
     private User getUser(String subject) {
-        Optional<User> existingUserWithEmail = userRepository.findByEmail(subject);
+        Optional<User> existingUserWithEmail = userRepository.findByEmailAndPasswordNotNull(subject);
         if(existingUserWithEmail.isPresent()) {
             return existingUserWithEmail.get();
         }
-        Optional<User> existingUserWithPhoneNumber = userRepository.findByPhoneNumber(subject);
+        Optional<User> existingUserWithPhoneNumber = userRepository.findByPhoneNumberAndPasswordNotNull(subject);
         if(existingUserWithPhoneNumber.isPresent()) {
             return existingUserWithPhoneNumber.get();
         }

@@ -1,10 +1,7 @@
 package com.nhom7.ecommercebackend.service.impl;
 
 import com.nhom7.ecommercebackend.exception.*;
-import com.nhom7.ecommercebackend.model.Order;
-import com.nhom7.ecommercebackend.model.ResetPasswordToken;
-import com.nhom7.ecommercebackend.model.Role;
-import com.nhom7.ecommercebackend.model.User;
+import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.OrderRepository;
 import com.nhom7.ecommercebackend.repository.ResetPasswordRepository;
 import com.nhom7.ecommercebackend.repository.RoleRepository;
@@ -15,7 +12,6 @@ import com.nhom7.ecommercebackend.request.user.UserDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.service.UserService;
-import com.nhom7.ecommercebackend.utils.UserUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,7 +21,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -44,7 +41,7 @@ public class UserServiceImpl implements UserService {
     private final OrderRepository orderRepository;
     private final ModelMapper modelMapper;
     private final ResetPasswordRepository resetPasswordRepository;
-    private final UserUtil userUtil;
+
     @Override
     @Transactional
     public User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
@@ -145,11 +142,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailResponse getUserDetail() {
         UserDetailResponse userDetailResponse = new UserDetailResponse();
-        User user = (User) userUtil.getLoggedInUser();
+        SecurityContext context = SecurityContextHolder.getContext();
+
+        User user = (User) loadUserByUsername(context.getAuthentication().getName());
         if (Objects.isNull(user)) {
             throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
         }
-        modelMapper.map((User) userUtil.getLoggedInUser(),userDetailResponse);
+        modelMapper.map(user ,userDetailResponse);
         userDetailResponse.setNoPassword(!StringUtils.hasText(user.getPassword()));
         return userDetailResponse;
     }
@@ -157,7 +156,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createPassword(PasswordCreationRequest request) throws PasswordCreationException {
-        User user = (User) userUtil.getLoggedInUser();
+        SecurityContext context = SecurityContextHolder.getContext();
+        User user = (User) loadUserByUsername(context.getAuthentication().getName());
         if (Objects.isNull(user)) {
             throw new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
         }
@@ -173,7 +173,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String updateResetPasswordToken(String email) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailAndPasswordNotNull(email)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         Optional<ResetPasswordToken> existResetToken = resetPasswordRepository
                 .findByUser(user);
@@ -208,5 +208,33 @@ public class UserServiceImpl implements UserService {
         user.setPassword(newPassword);
         userRepository.save(user);
         resetPasswordRepository.delete(resetPasswordToken);
+    }
+    @Override
+    @Transactional
+    public void changeProfileImage(Long userId, String imageName) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        existingUser.setProfileImage(imageName);
+        userRepository.save(existingUser);
+    }
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+            Optional<User> googleUser = userRepository.findByProviderAndProviderId(AuthProvider.google, username);
+            if(googleUser.isPresent()) {
+                return googleUser.get();
+            }
+            Optional<User> facebookUser = userRepository.findByProviderAndProviderId(AuthProvider.facebook, username);
+            if(facebookUser.isPresent()) {
+                return facebookUser.get();
+            }
+            Optional<User> userWithEmail = userRepository.findByEmailAndPasswordNotNull(username);
+            if(userWithEmail.isPresent()) {
+                return userWithEmail.get();
+            }
+            Optional<User> userWithPhoneNumber = userRepository.findByPhoneNumberAndPasswordNotNull(username);
+            if(userWithPhoneNumber.isPresent()) {
+                return userWithPhoneNumber.get();
+            }
+            throw new UsernameNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
     }
 }

@@ -18,7 +18,7 @@ import java.util.Date;
 public class UserDetailResponse {
 
     private String email;
-
+    private Long id;
     @JsonProperty("phone_number")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String phoneNumber;
@@ -37,6 +37,7 @@ public class UserDetailResponse {
 
     public static UserDetailResponse fromUser(User user) {
         return UserDetailResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .address(user.getAddress())
                 .fullName(user.getFullName())

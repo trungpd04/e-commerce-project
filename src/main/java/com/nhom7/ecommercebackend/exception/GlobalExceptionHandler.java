@@ -17,17 +17,34 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.*;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
     public ErrorResponse handleJwtValidationException(HttpServletRequest request, AuthenticationException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setStatus(UNAUTHORIZED.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
+    @ExceptionHandler(UnsupportedLoginException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleUnsupportedLoginException(HttpServletRequest request, UnsupportedLoginException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(BAD_REQUEST.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -36,13 +53,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(DataNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(NOT_FOUND)
     @ResponseBody
     public ErrorResponse handleDataNotFoundException(HttpServletRequest request, Exception e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.NOT_FOUND.value());
+        error.setStatus(NOT_FOUND.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -57,7 +74,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.FORBIDDEN.value());
+        error.setStatus(FORBIDDEN.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -66,13 +83,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(InvalidBearerTokenException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
     public ErrorResponse handleInvalidBearerTokenException(HttpServletRequest request, InvalidBearerTokenException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setStatus(UNAUTHORIZED.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -88,7 +105,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setStatus(INTERNAL_SERVER_ERROR.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -97,13 +114,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(TokenException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
     public ErrorResponse handleTokenException(HttpServletRequest request, TokenException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setStatus(UNAUTHORIZED.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -112,13 +129,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(PermissionDenyException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
     public ErrorResponse handlePermissionDenyException(HttpServletRequest request, PermissionDenyException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setStatus(UNAUTHORIZED.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -127,13 +144,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(PasswordCreationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleAppException(HttpServletRequest request, PasswordCreationException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setStatus(BAD_REQUEST.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
@@ -142,13 +159,13 @@ public class GlobalExceptionHandler {
         return error;
     }
     @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     @ResponseBody
     public ErrorResponse handleDataIntegrityViolationException(HttpServletRequest request, DataIntegrityViolationException e) {
         ErrorResponse error = new ErrorResponse();
 
         error.setTimeStamp(new Date());
-        error.setStatus(HttpStatus.BAD_REQUEST.value());
+        error.setStatus(BAD_REQUEST.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);

@@ -22,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
 public class ApplicationInitConfig {
-    PasswordEncoder passwordEncoder;
+
+    private final PasswordEncoder passwordEncoder;
+
     static String ADMIN_PHONE = "admin";
     static String ADMIN_EMAIL = "admin";
     static String ADMIN_PASSWORD = "admin";
@@ -32,7 +34,7 @@ public class ApplicationInitConfig {
             UserRepository userRepository, RoleRepository roleRepository) {
         log.info("Initializing application ...");
         return args -> {
-            if (userRepository.findByEmail(ADMIN_EMAIL).isEmpty()) {
+            if (userRepository.findByEmailAndPasswordNotNull(ADMIN_EMAIL).isEmpty()) {
                 Role adminRole = roleRepository.save(Role.builder()
                         .name("ADMIN")
                         .build());
