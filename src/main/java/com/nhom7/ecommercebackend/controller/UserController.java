@@ -78,9 +78,9 @@ public class UserController {
     public ApiResponse updateUser(@PathVariable("userId") Long userId, @RequestBody UserDTO userDTO) throws PermissionDenyException {
         User updatedUser = userService.updateUser(userId, userDTO);
         return ApiResponse.builder()
-                .status(BAD_REQUEST.value())
-                .message("Register User successfully!")
-                .data(updatedUser)
+                .status(HTTP_OK)
+                .message("Update User information successfully!")
+                .data(UserDetailResponse.fromUser(updatedUser))
                 .build();
     }
     @PostMapping(value = "/upload_profile_image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -157,11 +157,12 @@ public class UserController {
                 .totalPages(existingOrders.getTotalPages())
                 .build();
         return ApiResponse.builder()
-                .message("Get all order successfully!")
+                .message("Get all user's order successfully!")
                 .status(HTTP_OK)
                 .data(orderListResponse)
                 .build();
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{userId}")
@@ -169,10 +170,11 @@ public class UserController {
         User existinUser = userService.findUserById(userId);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Update User successfully!")
+                .message("Get user information successfully!")
                 .data(UserDetailResponse.fromUser(existinUser))
                 .build();
     }
+
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
@@ -183,6 +185,7 @@ public class UserController {
                 .message("Deactivate User successfully!")
                 .build();
     }
+
     @PostMapping("/login")
     public ApiResponse login(
             @RequestBody AuthenticationRequest loginRequest
