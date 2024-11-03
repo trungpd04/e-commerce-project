@@ -151,7 +151,7 @@ public class UserController {
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
         PageRequest request = PageRequest.of(page, size);
-        Page<OrderResponse> existingOrders = orderService.getMyOrders(keyword, request);
+        Page<OrderResponse> existingOrders = orderService.getMyOrders(keyword.toLowerCase().trim(), request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())
                 .totalPages(existingOrders.getTotalPages())
@@ -283,7 +283,7 @@ public class UserController {
             @RequestParam(value = "page", required = false, defaultValue = "0") int page
     ) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<UserDetailResponse> userDetailResponses = userService.getAllUsers(keyword, pageRequest);
+        Page<UserDetailResponse> userDetailResponses = userService.getAllUsers(keyword.toLowerCase().trim(), pageRequest);
         UserListResponse userListResponse = UserListResponse.builder()
                 .userDetailResponses(userDetailResponses.getContent())
                 .pageNo(page)

@@ -66,7 +66,7 @@ public class OrderController {
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
         PageRequest request = PageRequest.of(page, size);
-        Page<OrderResponse> existingOrders = orderService.getAllOrder(keyword, request);
+        Page<OrderResponse> existingOrders = orderService.getAllOrder(keyword.trim().toLowerCase(), request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())
                 .totalPages(existingOrders.getTotalPages())
