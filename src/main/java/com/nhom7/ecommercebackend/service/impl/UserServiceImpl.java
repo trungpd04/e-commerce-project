@@ -78,17 +78,30 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') ")
     public User updateUser(Long userID, UserDTO updatedUserDTO) {
+
         User existingUser = userRepository.findById(userID)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
+
+        if(userRepository.existsByEmail(updatedUserDTO.getEmail())) {
+            throw new DataIntegrityViolationException("This email has already exist!");
+        }
+
+        if(userRepository.existsByPhoneNumber(updatedUserDTO.getPhoneNumber())) {
+            throw new DataIntegrityViolationException("This phone number has already exist!");
+        }
+
         if (updatedUserDTO.getFullName() != null) {
             existingUser.setFullName(updatedUserDTO.getFullName());
         }
+
         if (updatedUserDTO.getEmail() != null) {
             existingUser.setEmail(updatedUserDTO.getEmail());
         }
+
         if (updatedUserDTO.getAddress() != null) {
             existingUser.setAddress(updatedUserDTO.getAddress());
         }
+
         if (updatedUserDTO.getDateOfBirth() != null) {
             existingUser.setDateOfBirth(updatedUserDTO.getDateOfBirth());
         }

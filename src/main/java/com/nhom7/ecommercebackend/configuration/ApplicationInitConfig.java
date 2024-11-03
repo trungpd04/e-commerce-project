@@ -35,24 +35,34 @@ public class ApplicationInitConfig {
         log.info("Initializing application ...");
         return args -> {
             if (userRepository.findByEmailAndPasswordNotNull(ADMIN_EMAIL).isEmpty()) {
-                Role adminRole = roleRepository.save(Role.builder()
+
+                Role adminRole = Role.builder()
                         .name("ADMIN")
-                        .build());
-                Role userRole = roleRepository.save(Role.builder()
-                        .name("USER")
-                        .build());
-                roleRepository.save(adminRole);
-                roleRepository.save(userRole);
+                        .build();
+                if(!roleRepository.existsByName("ADMIN")) {
+                    roleRepository.save(adminRole);
+                }else{
+                    log.info("Admin role already exists");
+                }
+                Role role = roleRepository.findByName("ADMIN");
                 User user = User.builder()
                         .email(ADMIN_EMAIL)
                         .phoneNumber(ADMIN_PHONE)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
                         .email(ADMIN_EMAIL)
-                        .role(adminRole)
+                        .role(role)
                         .active(true)
                         .build();
                 userRepository.save(user);
                 log.warn("admin user has been created with default password: admin, please change it");
+                Role userRole = Role.builder()
+                        .name("USER")
+                        .build();
+                if(!roleRepository.existsByName("USER")) {
+                    roleRepository.save(userRole);
+                }else{
+                    log.info("User role already exists");
+                }
             }
             log.info("Application initialization completed .....");
         };
