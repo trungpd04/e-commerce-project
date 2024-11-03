@@ -65,7 +65,7 @@ public class ProductController {
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
             @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
-            @RequestParam(value = "sort_dir", required = false) String sortDir
+            @RequestParam(value = "sort_dir", required = false, defaultValue = "asc") String sortDir
     ) {
 
         Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
