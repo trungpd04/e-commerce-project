@@ -6,9 +6,7 @@ import com.nhom7.ecommercebackend.repository.OrderRepository;
 import com.nhom7.ecommercebackend.repository.ResetPasswordRepository;
 import com.nhom7.ecommercebackend.repository.RoleRepository;
 import com.nhom7.ecommercebackend.repository.UserRepository;
-import com.nhom7.ecommercebackend.request.user.PasswordCreationRequest;
-import com.nhom7.ecommercebackend.request.user.ResetPasswordDTO;
-import com.nhom7.ecommercebackend.request.user.UserDTO;
+import com.nhom7.ecommercebackend.request.user.*;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.service.UserService;
@@ -78,16 +76,20 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') ")
-    public User updateUser(Long userID, UserDTO updatedUserDTO) {
+    public User updateUser(User user, UpdateUserDTO updatedUserDTO) {
 
-        User existingUser = userRepository.findById(userID)
+        User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
 
-        if(userRepository.existsByEmail(updatedUserDTO.getEmail())) {
+        if(userRepository.existsByEmail(updatedUserDTO.getEmail())
+            && !existingUser.getEmail().equals(updatedUserDTO.getEmail())
+        ) {
             throw new DataIntegrityViolationException("This email has already exist!");
         }
 
-        if(userRepository.existsByPhoneNumber(updatedUserDTO.getPhoneNumber())) {
+        if(userRepository.existsByPhoneNumber(updatedUserDTO.getPhoneNumber())
+            && !existingUser.getPhoneNumber().equals(updatedUserDTO.getPhoneNumber())
+        ) {
             throw new DataIntegrityViolationException("This phone number has already exist!");
         }
 
@@ -108,15 +110,6 @@ public class UserServiceImpl implements UserService {
         }
         if(updatedUserDTO.getProfileImage() != null) {
             existingUser.setProfileImage(updatedUserDTO.getProfileImage());
-        }
-        if (updatedUserDTO.getPassword() != null
-                && !updatedUserDTO.getPassword().isEmpty()) {
-            if (!updatedUserDTO.getPassword().equals(updatedUserDTO.getRetypePassword())) {
-                throw new DataNotFoundException("Password and retype password not the same");
-            }
-            String newPassword = updatedUserDTO.getPassword();
-            String encodedPassword = passwordEncoder.encode(newPassword);
-            existingUser.setPassword(encodedPassword);
         }
         return userRepository.save(existingUser);
     }
@@ -169,7 +162,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void createPassword(PasswordCreationRequest request) throws PasswordCreationException {
+    public void createPassword(PasswordCreationDTO request) throws PasswordCreationException {
         SecurityContext context = SecurityContextHolder.getContext();
         User user = (User) loadUserByUsername(context.getAuthentication().getName());
         if (Objects.isNull(user)) {
@@ -231,6 +224,21 @@ public class UserServiceImpl implements UserService {
         existingUser.setProfileImage(imageName);
         userRepository.save(existingUser);
     }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordDTO dto) throws PasswordCreationException {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException("User not found"));
+        if(!passwordEncoder.matches(dto.getPassword(), existingUser.getPassword())) {
+            throw new PasswordCreationException("Wrong password!");
+        }
+        if(!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+            throw new PasswordCreationException("Confirm password does not match new password!");
+        }
+        existingUser.setPassword(passwordEncoder.encode(dto.getConfirmPassword()));
+        userRepository.save(existingUser);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
             Optional<User> googleUser = userRepository.findByProviderAndProviderId(AuthProvider.google, username);

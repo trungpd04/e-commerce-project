@@ -47,6 +47,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     private final List<String> attributes = Arrays.asList(
             "mobile_ram",
             "mobile_storage",
+            "mobile_cpu",
             "mobile_screen_type",
             "mobile_screen_size",
             "mobile_screen_refresh_rate",
@@ -202,6 +203,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("mobile_ram", String.valueOf(random.nextInt(8))));
             attributeValues.add(createAttributeValue("mobile_storage", String.valueOf(random.nextInt(256))));
             attributeValues.add(createAttributeValue("mobile_screen_type", generateRandomScreenType()));
+            attributeValues.add(createAttributeValue("mobile_cpu", generateRandomCpu()));
             attributeValues.add(createAttributeValue("mobile_screen_size", String.valueOf(generateRandomScreenSize())));
             attributeValues.add(createAttributeValue("mobile_screen_refresh_rate", String.valueOf(generateRandomScreenRefreshRate())));
             attributeValues.add(createAttributeValue("mobile_battery_capacity", String.valueOf(random.nextInt(4000, 5000))));

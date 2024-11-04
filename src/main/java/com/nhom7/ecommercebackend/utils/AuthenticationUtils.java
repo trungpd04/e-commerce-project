@@ -21,7 +21,7 @@ import com.nhom7.ecommercebackend.repository.outbound.GoogleUserInfoClient;
 import com.nhom7.ecommercebackend.request.login.ExchangeTokenRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
-import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
+import com.nhom7.ecommercebackend.request.token.RefreshTokenDTO;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
 import com.nhom7.ecommercebackend.response.login.ExchangeTokenResponse;
 import com.nimbusds.jose.JOSEException;
@@ -48,6 +48,7 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 public class AuthenticationUtils {
+
     private final RsaKeyProperties rsaKeyProperties;
     private final JwtEncoder jwtEncoder;
     private final InvalidatedTokenRepository tokenRepository;
@@ -141,8 +142,8 @@ public class AuthenticationUtils {
         }
         return stringJoiner.toString();
     }
-    public AuthenticationResponse refreshToken(RefreshTokenRequest refreshTokenRequest) throws TokenException, ParseException, JOSEException {
-        SignedJWT signedJWT = verifyToken(true, refreshTokenRequest.getToken());
+    public AuthenticationResponse refreshToken(RefreshTokenDTO refreshTokenDTO) throws TokenException, ParseException, JOSEException {
+        SignedJWT signedJWT = verifyToken(true, refreshTokenDTO.getToken());
 
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
 
