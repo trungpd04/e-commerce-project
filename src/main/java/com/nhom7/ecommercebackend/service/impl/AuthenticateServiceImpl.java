@@ -17,6 +17,10 @@ import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -95,6 +99,16 @@ public class AuthenticateServiceImpl implements AuthenticateService {
     @Override
     public void logout(LogoutRequest logoutRequest) throws TokenException, ParseException, JOSEException {
         authenticationUtils.logout(logoutRequest);
+    }
+
+    @Override
+    public void clearSecurity() throws TokenException, ParseException, JOSEException {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        if(authentication instanceof JwtAuthenticationToken) {
+            String token = ((JwtAuthenticationToken) authentication).getToken().getTokenValue();
+            this.logout(new LogoutRequest(token));
+        }
     }
 
 

@@ -18,6 +18,8 @@ public interface AuthenticateService {
     AuthenticationResponse introspectToken(IntrospectRequest introspectRequest) throws ParseException, JOSEException;
     AuthenticationResponse refreshToken(RefreshTokenDTO request) throws TokenException, ParseException, JOSEException;
     void logout(LogoutRequest logoutRequest) throws TokenException, ParseException, JOSEException;
+    void clearSecurity() throws TokenException, ParseException, JOSEException;
     AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException;
     String getOauth2LoginURL(String loginType);
+
 }

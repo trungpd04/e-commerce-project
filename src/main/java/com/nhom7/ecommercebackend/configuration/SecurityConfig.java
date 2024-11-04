@@ -53,36 +53,7 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
     @Value("${api.prefix}")
     protected String API_PREFIX;
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return subject -> {
-//          org.springframework.security.core.context.SecurityContext context = SecurityContextHolder.getContext();
-//            Object object = context.getAuthentication().getDetails();
-//            if(object instanceof UserDetails) {
-//                User user = (User) object;
-//                String userName = user.getUsername();
-//                AuthProvider provider = user.getProvider();
-//                String providerId = user.getProviderId();
-//                Optional<User> googleUser = userRepository.findByProviderAndProviderId(provider, providerId);
-//                if(googleUser.isPresent()) {
-//                    return googleUser.get();
-//                }
-//                Optional<User> facebookUser = userRepository.findByProviderAndProviderId(provider, providerId);
-//                if(facebookUser.isPresent()) {
-//                    return facebookUser.get();
-//                }
-//                Optional<User> userWithEmail = userRepository.findByEmail(userName);
-//                if(userWithEmail.isPresent()) {
-//                    return userWithEmail.get();
-//                }
-//                Optional<User> userWithPhoneNumber = userRepository.findByProviderAndProviderId(provider, providerId);
-//                if(userWithPhoneNumber.isPresent()) {
-//                    return userWithPhoneNumber.get();
-//                }
-//            }
-//            throw new UsernameNotFoundException(MessageKeys.USER_NOT_EXIST.toString());
-//        };
-//    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         final String[] PUBLIC_ENDPOINT_GET = {

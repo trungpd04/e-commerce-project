@@ -35,6 +35,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,9 +77,10 @@ public class UserController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     @PutMapping("")
-    public ApiResponse updateUser(@RequestBody UpdateUserDTO userDTO) throws PermissionDenyException {
+    public ApiResponse updateUser(@RequestBody UpdateUserDTO userDTO) throws PermissionDenyException, TokenException, ParseException, JOSEException {
         User loggedInUser = userUtil.getLoggedInUser();
         User updatedUser = userService.updateUser(loggedInUser, userDTO);
+        authenticateService.clearSecurity();
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Update User information successfully!")
@@ -322,14 +327,15 @@ public class UserController {
                 .message("Create password successfully!")
                 .build();
     }
-    @PostMapping("/change_password/{userId}")
+    @PostMapping("/change_password")
     @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER')")
     public ApiResponse changePassword(
-            @PathVariable(name = "userId") Long userId,
             @RequestBody ChangePasswordDTO dto
-            ) throws PasswordCreationException {
-        userService.changePassword(userId, dto);
+            ) throws PasswordCreationException, TokenException, ParseException, JOSEException {
+        User user = userUtil.getLoggedInUser();
+        userService.changePassword(user, dto);
+        authenticateService.clearSecurity();
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Change password successfully!")
