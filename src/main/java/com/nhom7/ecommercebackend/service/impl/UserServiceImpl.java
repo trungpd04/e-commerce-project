@@ -44,6 +44,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+
     public User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException {
         if (!userDTO.getEmail().isBlank() && userRepository.existsByEmail(userDTO.getEmail())) {
             throw new DataIntegrityViolationException("This email has already exist!");

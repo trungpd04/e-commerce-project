@@ -25,6 +25,7 @@ import com.nhom7.ecommercebackend.service.UserService;
 import com.nhom7.ecommercebackend.utils.FileUtils;
 import com.nhom7.ecommercebackend.utils.SecurityUtils;
 import com.nimbusds.jose.JOSEException;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +70,7 @@ public class UserController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Register User successfully!")
-                .data(newUser)
+                .data(UserDetailResponse.fromUser(newUser))
                 .build();
     }
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -224,7 +225,14 @@ public class UserController {
         return authenticateService.introspectToken(introspectRequest);
     }
     @PostMapping("/oauth2/login")
-    public ApiResponse oauth2Login(@RequestParam("login_type") String loginType) {
+    public ApiResponse oauth2Login(
+            @Parameter(
+                    name = "login_type",
+                    description = "facebook or google",
+                    example = "google"
+            )
+            @RequestParam("login_type") String loginType
+    ) {
         String url = authenticateService.getOauth2LoginURL(loginType);
         return ApiResponse.builder()
                 .data(url)
@@ -256,6 +264,11 @@ public class UserController {
     @GetMapping("/oauth2/social/callback")
     public ApiResponse callback(
             @RequestParam("code") String code,
+            @Parameter(
+                    name = "login_type",
+                    description = "facebook or google",
+                    example = "google"
+            )
             @RequestParam("login_type") String loginType
     ) throws Exception {
         AuthenticationResponse request = authenticateService.exchangeToken(code, loginType);
@@ -312,7 +325,9 @@ public class UserController {
                 .build();
     }
     @PostMapping("/forgot_password")
-    public ApiResponse forgotPassword(@RequestParam(value = "email") String email) throws MessagingException, UnsupportedEncodingException {
+    public ApiResponse forgotPassword(
+            @RequestParam(value = "email") String email
+    ) throws MessagingException, UnsupportedEncodingException {
         String token = userService.updateResetPasswordToken(email);
         String link = ALLOW_ORIGIN + "/reset_password?token=" + token;
         System.out.println(link);
