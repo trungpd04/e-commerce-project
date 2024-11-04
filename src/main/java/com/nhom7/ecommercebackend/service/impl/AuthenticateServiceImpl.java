@@ -9,7 +9,7 @@ import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
-import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
+import com.nhom7.ecommercebackend.request.token.RefreshTokenDTO;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
 import com.nhom7.ecommercebackend.service.AuthenticateService;
 import com.nhom7.ecommercebackend.utils.AuthenticationUtils;
@@ -87,7 +87,7 @@ public class AuthenticateServiceImpl implements AuthenticateService {
     }
 
     @Override
-    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws TokenException, ParseException, JOSEException {
+    public AuthenticationResponse refreshToken(RefreshTokenDTO request) throws TokenException, ParseException, JOSEException {
         return authenticationUtils.refreshToken(request);
     }
 

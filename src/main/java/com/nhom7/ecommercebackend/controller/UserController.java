@@ -8,10 +8,8 @@ import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.request.login.AuthenticationRequest;
 import com.nhom7.ecommercebackend.request.login.IntrospectRequest;
 import com.nhom7.ecommercebackend.request.login.LogoutRequest;
-import com.nhom7.ecommercebackend.request.token.RefreshTokenRequest;
-import com.nhom7.ecommercebackend.request.user.PasswordCreationRequest;
-import com.nhom7.ecommercebackend.request.user.ResetPasswordDTO;
-import com.nhom7.ecommercebackend.request.user.UserDTO;
+import com.nhom7.ecommercebackend.request.token.RefreshTokenDTO;
+import com.nhom7.ecommercebackend.request.user.*;
 import com.nhom7.ecommercebackend.response.ApiResponse;
 import com.nhom7.ecommercebackend.response.login.AuthenticationResponse;
 import com.nhom7.ecommercebackend.response.order.OrderListResponse;
@@ -29,11 +27,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,7 +43,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
 import java.text.ParseException;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.springframework.http.HttpStatus.*;
 
@@ -75,9 +72,10 @@ public class UserController {
     }
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @PutMapping("/{userId}")
-    public ApiResponse updateUser(@PathVariable("userId") Long userId, @RequestBody UserDTO userDTO) throws PermissionDenyException {
-        User updatedUser = userService.updateUser(userId, userDTO);
+    @PutMapping("")
+    public ApiResponse updateUser(@RequestBody UpdateUserDTO userDTO) throws PermissionDenyException {
+        User loggedInUser = userUtil.getLoggedInUser();
+        User updatedUser = userService.updateUser(loggedInUser, userDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Update User information successfully!")
@@ -209,9 +207,9 @@ public class UserController {
     }
     @PostMapping("/refresh")
     public ApiResponse refreshToken(
-            @RequestBody RefreshTokenRequest refreshTokenRequest
+            @RequestBody RefreshTokenDTO refreshTokenDTO
             ) throws TokenException, ParseException, JOSEException {
-        AuthenticationResponse authenticationResponse = authenticateService.refreshToken(refreshTokenRequest);
+        AuthenticationResponse authenticationResponse = authenticateService.refreshToken(refreshTokenDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Refresh token successfully!")
@@ -317,11 +315,24 @@ public class UserController {
     @PostMapping("/create_password")
     @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER')")
-    public ApiResponse createPassword(@RequestBody PasswordCreationRequest request) throws PasswordCreationException {
+    public ApiResponse createPassword(@RequestBody PasswordCreationDTO request) throws PasswordCreationException {
         userService.createPassword(request);
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Create password successfully!")
+                .build();
+    }
+    @PostMapping("/change_password/{userId}")
+    @SecurityRequirement(name = "bearer-key")
+    @PreAuthorize("hasRole('USER')")
+    public ApiResponse changePassword(
+            @PathVariable(name = "userId") Long userId,
+            @RequestBody ChangePasswordDTO dto
+            ) throws PasswordCreationException {
+        userService.changePassword(userId, dto);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Change password successfully!")
                 .build();
     }
     @PostMapping("/forgot_password")

@@ -7,6 +7,6 @@ import lombok.*;
 @Setter
 @Getter
 @NoArgsConstructor
-public class RefreshTokenRequest {
+public class RefreshTokenDTO {
     private String token;
 }

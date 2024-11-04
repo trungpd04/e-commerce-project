@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class PasswordCreationRequest {
+public class PasswordCreationDTO {
     private String password;
     @JsonProperty("retype_password")
     private String retypePassword;
