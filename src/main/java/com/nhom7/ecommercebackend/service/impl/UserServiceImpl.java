@@ -10,6 +10,7 @@ import com.nhom7.ecommercebackend.request.user.*;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.service.UserService;
+import com.nimbusds.jose.JOSEException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -76,7 +78,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER') ")
-    public User updateUser(User user, UpdateUserDTO updatedUserDTO) {
+    public User updateUser(User user, UpdateUserDTO updatedUserDTO) throws TokenException, ParseException, JOSEException {
 
         User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
@@ -111,6 +113,7 @@ public class UserServiceImpl implements UserService {
         if(updatedUserDTO.getProfileImage() != null) {
             existingUser.setProfileImage(updatedUserDTO.getProfileImage());
         }
+
         return userRepository.save(existingUser);
     }
 
@@ -226,8 +229,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(Long userId, ChangePasswordDTO dto) throws PasswordCreationException {
-        User existingUser = userRepository.findById(userId)
+    public void changePassword(User user, ChangePasswordDTO dto) throws PasswordCreationException {
+        User existingUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new DataNotFoundException("User not found"));
         if(!passwordEncoder.matches(dto.getPassword(), existingUser.getPassword())) {
             throw new PasswordCreationException("Wrong password!");
@@ -241,6 +244,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
             Optional<User> googleUser = userRepository.findByProviderAndProviderId(AuthProvider.google, username);
             if(googleUser.isPresent()) {
                 return googleUser.get();

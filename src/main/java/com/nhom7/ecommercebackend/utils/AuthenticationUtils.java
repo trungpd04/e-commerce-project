@@ -195,9 +195,11 @@ public class AuthenticationUtils {
             throw new TokenException(MessageKeys.INVALID_TOKEN.toString());
         }
         String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+
         if(tokenRepository.existsById(jwtId)) {
             throw new TokenException(MessageKeys.UNAUTHENTICATED.toString());
         }
+
         return signedJWT;
     }
     public AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException {
