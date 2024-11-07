@@ -291,7 +291,7 @@ public class AuthenticationUtils {
         }
     }
     private String getSubject(User user) {
-        if(user.getEmail() != null) {
+        if(!user.getEmail().isBlank()) {
             return user.getEmail();
         }else{
             return user.getPhoneNumber();
