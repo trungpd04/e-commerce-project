@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
-    Optional<Order> findByUserId(Long userId);
+
     @Query("SELECT o FROM Order o where TRIM(o.user.fullName) LIKE TRIM(LOWER(CONCAT('%', :keyword, '%')))")
     Page<Order> findAll(@Param("keyword")String keyword, Pageable pageable);
 

@@ -320,8 +320,9 @@ public class UserController {
     @PostMapping("/create_password")
     @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('USER')")
-    public ApiResponse createPassword(@RequestBody PasswordCreationDTO request) throws PasswordCreationException {
+    public ApiResponse createPassword(@RequestBody PasswordCreationDTO request) throws PasswordCreationException, TokenException, ParseException, JOSEException {
         userService.createPassword(request);
+        authenticateService.clearSecurity();
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Create password successfully!")
@@ -347,7 +348,6 @@ public class UserController {
     ) throws MessagingException, UnsupportedEncodingException {
         String token = userService.updateResetPasswordToken(email);
         String link = ALLOW_ORIGIN + "/reset_password?token=" + token;
-        System.out.println(link);
         emailService.sendEmail(email, link);
         return ApiResponse.builder()
                 .status(HTTP_OK)

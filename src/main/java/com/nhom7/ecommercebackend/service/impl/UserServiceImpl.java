@@ -103,6 +103,10 @@ public class UserServiceImpl implements UserService {
             existingUser.setEmail(updatedUserDTO.getEmail());
         }
 
+        if(updatedUserDTO.getPhoneNumber() != null) {
+            existingUser.setPhoneNumber(updatedUserDTO.getPhoneNumber());
+        }
+
         if (updatedUserDTO.getAddress() != null) {
             existingUser.setAddress(updatedUserDTO.getAddress());
         }
@@ -151,6 +155,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetailResponse getUserDetail() {
+
         UserDetailResponse userDetailResponse = new UserDetailResponse();
         SecurityContext context = SecurityContextHolder.getContext();
 
@@ -249,14 +254,17 @@ public class UserServiceImpl implements UserService {
             if(googleUser.isPresent()) {
                 return googleUser.get();
             }
+
             Optional<User> facebookUser = userRepository.findByProviderAndProviderId(AuthProvider.facebook, username);
             if(facebookUser.isPresent()) {
                 return facebookUser.get();
             }
+
             Optional<User> userWithEmail = userRepository.findByEmailAndPasswordNotNull(username);
             if(userWithEmail.isPresent()) {
                 return userWithEmail.get();
             }
+
             Optional<User> userWithPhoneNumber = userRepository.findByPhoneNumberAndPasswordNotNull(username);
             if(userWithPhoneNumber.isPresent()) {
                 return userWithPhoneNumber.get();
