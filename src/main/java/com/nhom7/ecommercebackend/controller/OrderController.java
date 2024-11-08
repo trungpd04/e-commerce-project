@@ -8,6 +8,7 @@ import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.payment.VNPayResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.service.PaymentService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,14 +62,28 @@ public class OrderController {
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse getAllOrder(
+            @Parameter(
+                    name = "keyword",
+                    description = "tên của khách hàng",
+                    example = "duyduc"
+            )
             @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword,
+            @Parameter(
+                    name = "status",
+                    description = "pending, processing, shipped, delivered or cancelled",
+                    example = "pending"
+            )
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "size", defaultValue = "5", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
         PageRequest request = PageRequest.of(page, size);
-        Page<OrderResponse> existingOrders = orderService.getAllOrder(keyword.trim().toLowerCase(), request);
+        Page<OrderResponse> existingOrders = orderService.getAllOrder(keyword.trim().toLowerCase(), status, request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())
+                .pageNo(page)
+                .pageSize(size)
+                .totalElements(existingOrders.getTotalElements())
                 .totalPages(existingOrders.getTotalPages())
                 .build();
         return ApiResponse.builder()

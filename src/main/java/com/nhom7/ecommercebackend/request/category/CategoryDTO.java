@@ -22,7 +22,4 @@ public class CategoryDTO {
     @Range(min = 3, message = "Category name must have at least 3 characters")
     private String name;
 
-    @JsonProperty("sub_categories")
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> subCategories;
 }

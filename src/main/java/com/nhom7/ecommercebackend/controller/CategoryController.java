@@ -10,11 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("${api.prefix}/categories")
@@ -71,10 +67,9 @@ public class CategoryController {
         Category category = categoryService.updateCategory(categoryId, categoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-//                .data(toCategoryDTO(category))
+                .data(category)
                 .message("Update category successfully!")
                 .build();
-
     }
     @PostMapping("/add_subcategory/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
