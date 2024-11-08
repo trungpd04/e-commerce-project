@@ -21,6 +21,8 @@ public class ProductDTO {
 
     private BigDecimal price;
 
+    @JsonProperty("is_hot")
+    private boolean isHot;
     private String thumbnail;
 
     @JsonProperty("category_id")

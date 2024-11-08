@@ -67,7 +67,9 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             "laptop_design_description",
             "laptop_os",
             "laptop_manufacturer",
-            "laptop_guarantee_month"
+            "laptop_guarantee_month",
+            "mobile_hot",
+            "laptop_hot"
     );
     private final Faker faker = new Faker();
     private final Random random = new Random();
@@ -212,7 +214,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             attributeValues.add(createAttributeValue("mobile_os", generateRandomOs()));
             attributeValues.add(createAttributeValue("mobile_manufacturer", faker.company().name()));
             attributeValues.add(createAttributeValue("mobile_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
-
         } else {
             // Laptop attributes
             attributeValues.add(createAttributeValue("laptop_ram", String.valueOf(random.nextInt(16))));
@@ -235,6 +236,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000.0, 3000.0))))
                 .quantity(random.nextLong(10))
                 .thumbnail(null)
+                .isHot(getRandomBoolean())
                 .categoryId(categoryId)
                 .subcategory(subcategoryIds) // Associate with the selected subcategories
                 .attributeValues(attributeValues)
@@ -285,6 +287,9 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     private String generateRandomOs() {
         List<String> operatingSystems = Arrays.asList("IOS", "Android", "Windows 10", "Windows 11");
         return operatingSystems.get(random.nextInt(operatingSystems.size()));
+    }
+    public boolean getRandomBoolean() {
+        return Math.random() < 0.5;
     }
 
 }
