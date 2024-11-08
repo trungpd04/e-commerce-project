@@ -150,14 +150,23 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse getMyOrder(
-            @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword,
+            @Parameter(
+                    name = "status",
+                    description = "pending, processing, shipped, delivered or cancelled",
+                    example = "pending"
+            )
+            @RequestParam(value = "status", defaultValue = "pending", required = false) String status,
             @RequestParam(value = "size", defaultValue = "5", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
         PageRequest request = PageRequest.of(page, size);
-        Page<OrderResponse> existingOrders = orderService.getMyOrders(keyword.toLowerCase().trim(), request);
+        User user = userUtil.getLoggedInUser();
+        Page<OrderResponse> existingOrders = orderService.getMyOrders(user, status.trim().toLowerCase(), request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())
+                .pageNo(page)
+                .pageSize(size)
+                .totalElements(existingOrders.getTotalElements())
                 .totalPages(existingOrders.getTotalPages())
                 .build();
         return ApiResponse.builder()

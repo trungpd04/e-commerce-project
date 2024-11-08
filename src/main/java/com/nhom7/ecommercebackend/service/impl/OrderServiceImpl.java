@@ -121,14 +121,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderResponse> getAllOrder(String keyword, PageRequest pageRequest) {
-        Page<Order> orderResponsePage = orderRepository.findAll(keyword, pageRequest);
+    public Page<OrderResponse> getAllOrder(String keyword, String status, PageRequest pageRequest) {
+        Page<Order> orderResponsePage = orderRepository.findAll(keyword, status, pageRequest);
         return orderResponsePage.map(OrderResponse::fromOrder);
     }
 
     @Override
-    public Page<OrderResponse> getMyOrders(String keyword, PageRequest pageRequest) {
-        Page<Order> orderResponsePage = orderRepository.findAll(keyword, pageRequest);
+    public Page<OrderResponse> getMyOrders(User user, String status, PageRequest pageRequest) {
+        Page<Order> orderResponsePage = orderRepository.findAllByStatusAndUser(status,user, pageRequest);
         return orderResponsePage.map(OrderResponse::fromOrder);
     }
 }
