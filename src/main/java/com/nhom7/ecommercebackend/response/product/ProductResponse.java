@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,14 @@ public class ProductResponse {
     private String thumbnail;
     private BigDecimal price;
     private boolean active;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
+    @JsonProperty("updated_at")
+    private LocalDateTime updatedAt;
+
+    @JsonProperty("is_hot")
+    private boolean isHot;
+
     private List<ProductAttributeValueResponse> attributes;
     @JsonProperty("category_name")
     private String category;
@@ -49,6 +58,9 @@ public class ProductResponse {
                 .thumbnail(product.getThumbnail())
                 .active(product.getActive())
                 .price(product.getPrice())
+                .isHot(product.isHot())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .category(product.getSubcategory().getFirst().getCategory().getName())
                 .attributes(attributeValues)
                 .subcategory(subcategory)

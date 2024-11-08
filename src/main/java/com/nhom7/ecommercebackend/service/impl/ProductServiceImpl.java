@@ -155,6 +155,7 @@ public class ProductServiceImpl implements ProductService {
                 .description(productDTO.getDescription())
                 .thumbnail(productDTO.getThumbnail())
                 .price(productDTO.getPrice())
+                .isHot(productDTO.isHot())
                 .quantity(productDTO.getQuantity())
                 .subcategory(subCategories)
                 .build();

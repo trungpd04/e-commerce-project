@@ -32,6 +32,9 @@ public class Product extends BaseEntity {
     @Column(name = "active")
     private Boolean active;
 
+    @Column(name = "is_hot")
+    private boolean isHot;
+
     @Column(name = "quantity")
     private Long quantity;
 
