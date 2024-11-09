@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,11 +74,15 @@ public class OrderController {
                     description = "pending, processing, shipped, delivered or cancelled",
                     example = "pending"
             )
+            @RequestParam(value = "sort_by", defaultValue = "orderDate", required = false) String sortBy,
+            @RequestParam(value = "sort_dir", defaultValue = "desc", required = false) String sortDir,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "size", defaultValue = "5", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
-        PageRequest request = PageRequest.of(page, size);
+        Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(sortDirection, sortBy.trim());
+        PageRequest request = PageRequest.of(page, size, sort);
         Page<OrderResponse> existingOrders = orderService.getAllOrder(keyword.trim().toLowerCase(), status, request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())

@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -156,10 +157,14 @@ public class UserController {
                     example = "pending"
             )
             @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "sort_by", defaultValue = "orderDate", required = false) String sortBy,
+            @RequestParam(value = "sort_dir", defaultValue = "desc", required = false) String sortDir,
             @RequestParam(value = "size", defaultValue = "5", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
-        PageRequest request = PageRequest.of(page, size);
+        Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sort = Sort.by(sortDirection, sortBy.trim());
+        PageRequest request = PageRequest.of(page, size, sort);
         User user = userUtil.getLoggedInUser();
         Page<OrderResponse> existingOrders = orderService.getMyOrders(user, status, request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
