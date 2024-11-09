@@ -155,13 +155,13 @@ public class UserController {
                     description = "pending, processing, shipped, delivered or cancelled",
                     example = "pending"
             )
-            @RequestParam(value = "status", defaultValue = "pending", required = false) String status,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "size", defaultValue = "5", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
     ) {
         PageRequest request = PageRequest.of(page, size);
         User user = userUtil.getLoggedInUser();
-        Page<OrderResponse> existingOrders = orderService.getMyOrders(user, status.trim().toLowerCase(), request);
+        Page<OrderResponse> existingOrders = orderService.getMyOrders(user, status, request);
         OrderListResponse orderListResponse = OrderListResponse.builder()
                 .orders(existingOrders.getContent())
                 .pageNo(page)
