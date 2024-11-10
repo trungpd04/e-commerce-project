@@ -36,4 +36,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("status") String status,
             @Param("user") User user,
             Pageable pageable);
+    List<Order> findAllByUserId(Long userId);
 }

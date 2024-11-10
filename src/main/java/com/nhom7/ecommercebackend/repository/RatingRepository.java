@@ -18,6 +18,6 @@ public interface RatingRepository extends JpaRepository<Rating, RatingId> {
     @Query("SELECT r from Rating  r where r.id.product.id = :productId")
     Page<Rating> getAllByProductId(@Param("productId") Long productId, Pageable pageable);
 
-    @Query("SELECT r from Rating  r where r.id.user.id = :userId")
-    Optional<Rating> findByUserId(@Param("userId") Long userId);
+
+    Optional<Rating> findById(RatingId id);
 }
