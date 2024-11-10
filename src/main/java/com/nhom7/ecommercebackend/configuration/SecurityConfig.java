@@ -76,7 +76,9 @@ public class SecurityConfig {
                 String.format("%s/webjars/swagger-ui/**", API_PREFIX),
                 String.format("%s/swagger-ui/index.html", API_PREFIX)
         };
+
         final String[] PUBLIC_ENDPOINT_POST = {
+                String.format("%s/contact_us", API_PREFIX),
                 String.format("%s/users/register",API_PREFIX),
                 String.format("%s/users/login",API_PREFIX),
                 String.format("%s/users/introspect", API_PREFIX),

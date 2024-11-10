@@ -59,7 +59,6 @@ public class ProductController {
                             "Example: `{ \"mobile_ram\" : \"4-10\" }`, `{ \"mobile_storage\" : \"128\" }`, `{ \"laptop_ram\" : \"16\" }`, `{ \"category_id\" : \"1\" }`, `{ \"subcategory_id\" : \"1\" }`.",
                     in = ParameterIn.QUERY,
                     name = "attributeValue"
-//                    example = "{ \"mobile_ram\" : \"4-10\" }"
             )
             @RequestParam(defaultValue = "") Map<String, String> attributeValue,
             @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
@@ -70,7 +69,6 @@ public class ProductController {
         PageRequest pageRequest = null;
         Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
         if(attributeValue.get("sort_by").equalsIgnoreCase("rating")) {
-            Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
             pageRequest = PageRequest.of(page, size);
         }else{
             Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
