@@ -63,6 +63,7 @@ public class SecurityConfig {
                 String.format("%s/users/oauth2/social/callback", API_PREFIX),
                 String.format("%s/sub_categories/**",API_PREFIX),
                 String.format("%s/ratings/**", API_PREFIX),
+                String.format("%s/ratings/average_by_product/**", API_PREFIX),
                 String.format("%s/users/oauth2/userinfo", API_PREFIX),
                 String.format("%s/api-docs",API_PREFIX),
                 String.format("%s/api-docs/**", API_PREFIX),

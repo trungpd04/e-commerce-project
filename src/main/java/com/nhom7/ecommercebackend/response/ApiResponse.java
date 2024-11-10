@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 @Setter
 public class ApiResponse {
     private int status;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String message;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
