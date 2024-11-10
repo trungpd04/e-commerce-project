@@ -116,4 +116,15 @@ public class RatingServiceImpl implements RatingService {
         return page.map(RatingResponse::fromRating);
     }
 
+    @Override
+    public float calculateAverageRating(Long productId) {
+        List<Rating> ratings = ratingRepository.findAllByProductId(productId);
+        float averageRating = 0;
+        for(Rating rating : ratings) {
+            averageRating += rating.getRate();
+        }
+        averageRating /= ratings.size();
+        return (float) (Math.floor(averageRating * 10) / 10);
+    }
+
 }

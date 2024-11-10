@@ -49,6 +49,9 @@ public class Product extends BaseEntity {
             fetch = FetchType.LAZY)
     private List<ProductImage> productImages;
 
+    @OneToMany(mappedBy = "id.product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Rating> ratings;
+
     @PrePersist
     private void setActive() {
         setActive(true);

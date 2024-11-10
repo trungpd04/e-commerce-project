@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend.repository.filter;
 
 import com.nhom7.ecommercebackend.model.*;
 import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Order;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class FilterSpecification<Product> implements Specification<Product> {
         Join<Product, ProductAttributeValue> productAttributeValueJoin = null;
         Join<ProductAttributeValue, ProductAttribute> productAttributeValueProductAttributeJoin = null;
 
-        // Handle search keyword separately to avoid adding unnecessary joins
+
         if (filter.getAttributeValueMap().containsKey("search")) {
             String keyword = "%" + filter.getAttributeValueMap().get("search").toLowerCase().trim() + "%";
 
@@ -42,14 +43,14 @@ public class FilterSpecification<Product> implements Specification<Product> {
             predicates.add(keywordFilter);
         }
 
-        // Process other attributes in the filter map
+
         for (Map.Entry<String, String> attributeValue : filter.getAttributeValueMap().entrySet()) {
             if (attributeValue.getKey().equals("page")
                     || attributeValue.getKey().equals("size")
                     || attributeValue.getKey().equals("sort_by")
                     || attributeValue.getKey().equals("sort_dir")
-                    || attributeValue.getKey().equals("search")) {
-                // Skip pagination and sorting parameters, as well as "search" since it was handled above
+                    || attributeValue.getKey().equals("search")
+                    || attributeValue.getKey().equals("rating")) {
                 continue;
             }
 
@@ -58,7 +59,15 @@ public class FilterSpecification<Product> implements Specification<Product> {
                 Predicate hotPredicate = criteriaBuilder.equal(root.get("isHot"), isHot);
                 predicates.add(hotPredicate);
             }
-
+            if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
+                if (productSubCategoryJoin == null) {
+                    productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
+                }
+                Predicate subcategoryPredicate = criteriaBuilder.equal(
+                        productSubCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
+                );
+                predicates.add(subcategoryPredicate);
+            }
             if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
                 if (productSubCategoryJoin == null) {
                     productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
@@ -120,6 +129,22 @@ public class FilterSpecification<Product> implements Specification<Product> {
                     );
                     predicates.add(criteriaBuilder.and(attributeNamePredicate, attributeValuePredicate));
                 }
+            }
+        }
+
+        if ("rating".equals(filter.getAttributeValueMap().get("sort_by"))) {
+
+            Subquery<Double> avgRatingSubquery = query.subquery(Double.class);
+            Root<Rating> ratingRoot = avgRatingSubquery.from(Rating.class);
+
+            avgRatingSubquery.select(criteriaBuilder.avg(ratingRoot.get("rate")));
+            avgRatingSubquery.where(criteriaBuilder.equal(ratingRoot.get("id").get("product").get("id"), root.get("id")));
+
+            String sortDir = filter.getAttributeValueMap().getOrDefault("sort_dir", "asc");
+            if ("asc".equalsIgnoreCase(sortDir)) {
+                query.orderBy(criteriaBuilder.asc(avgRatingSubquery), criteriaBuilder.asc(root.get("id")));
+            } else {
+                query.orderBy(criteriaBuilder.desc(avgRatingSubquery),  criteriaBuilder.asc(root.get("id")));
             }
         }
 

@@ -67,10 +67,16 @@ public class ProductController {
             @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
             @RequestParam(value = "sort_dir", required = false, defaultValue = "asc") String sortDir
     ) {
-
+        PageRequest pageRequest = null;
         Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        if(attributeValue.get("sort_by").equalsIgnoreCase("rating")) {
+            Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
+            pageRequest = PageRequest.of(page, size);
+        }else{
+            Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
+            pageRequest = PageRequest.of(page, size, sort);
+        }
+
         Filter filter = new Filter(attributeValue);
         Page<ProductResponse> productResponses = productService
                 .getAllProductFilter(filter, pageRequest);

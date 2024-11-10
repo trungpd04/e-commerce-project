@@ -57,6 +57,16 @@ public class RatingController {
                 .data(ratingListResponse)
                 .build();
     }
+    @GetMapping("/average_by_product/{productId}")
+    public ApiResponse getAverageRatingByProduct(
+            @PathVariable("productId") Long productId
+    ) {
+        float averageRating = ratingService.calculateAverageRating(productId);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .data(averageRating)
+                .build();
+    }
     @PutMapping("")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
