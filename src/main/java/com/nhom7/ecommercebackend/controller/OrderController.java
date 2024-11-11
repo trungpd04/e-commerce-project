@@ -8,6 +8,7 @@ import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.payment.VNPayResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.service.PaymentService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -120,6 +121,7 @@ public class OrderController {
                 .status(HTTP_OK)
                 .build();
     }
+    @Hidden
     @GetMapping("/checkout/vn-pay/callback")
     public ApiResponse getVNPayResponse(
             @RequestParam(name = "vnp_Amount", required = true) Long vnpAmount,
