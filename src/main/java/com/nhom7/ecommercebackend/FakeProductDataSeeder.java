@@ -233,7 +233,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         return ProductDTO.builder()
                 .name(productName)
                 .description(faker.lorem().sentence())
-                .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000.0, 3000.0))))
+                .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000000, 4000000))))
                 .quantity(random.nextLong(10))
                 .thumbnail(null)
                 .isHot(getRandomBoolean())

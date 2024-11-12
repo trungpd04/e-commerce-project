@@ -1,6 +1,7 @@
 package com.nhom7.ecommercebackend.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Digits;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public class Product extends BaseEntity {
     @Column(name = "name", nullable = false, length = 350)
     private String name;
 
+    @Column(columnDefinition = "DECIMAL(38,0)")
     private BigDecimal price;
 
     @Column(name = "thumbnail", length = 300)

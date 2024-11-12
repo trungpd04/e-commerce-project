@@ -173,4 +173,19 @@ public class GlobalExceptionHandler {
 
         return error;
     }
+    @ExceptionHandler(UnsupportedPaymentException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleUnsupportedPaymentException(HttpServletRequest request, UnsupportedPaymentException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(BAD_REQUEST.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
 }

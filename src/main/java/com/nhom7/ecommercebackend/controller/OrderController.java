@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.controller;
 
+import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
 import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
@@ -39,14 +40,23 @@ public class OrderController {
     @PostMapping("")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
-    public ApiResponse createOrder(@RequestBody OrderDTO orderDTO) {
-        Order newOrder = orderService.createOrder(orderDTO);
+    public ApiResponse createOrder(
+            @Parameter(
+                    name = "payment_type",
+                    description = "cash, zalo_pay, vn_pay, momo",
+                    example = "cash"
+            )
+            @RequestParam(value = "payment_type", required = false, defaultValue = "cash") String paymentType,
+            @RequestBody OrderDTO orderDTO
+    ) throws UnsupportedPaymentException {
+        Order newOrder = orderService.createOrder(orderDTO, paymentType);
         return ApiResponse.builder()
                 .message("Place order successfully!")
                 .status(HTTP_OK)
                 .data(OrderResponse.fromOrder(newOrder))
                 .build();
     }
+
     @GetMapping("/{orderId}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
@@ -58,6 +68,26 @@ public class OrderController {
                 .message("Get order successfully!")
                 .status(HTTP_OK)
                 .data(OrderResponse.fromOrder(existingOrder))
+                .build();
+    }
+    @PostMapping("/update_payment_status")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse updatePaymentStatus(
+            @RequestParam(value = "order_id", required = true) String orderId,
+            @RequestParam(value = "status_code", required = true) String status,
+            @Parameter(
+                    name = "payment_type",
+                    description = "cash, zalo_pay, vn_pay, momo",
+                    example = "cash"
+            )
+            @RequestParam(value = "payment_type", required = true) String paymentType
+    ) {
+        Order order = orderService.updatePaymentStatus(UUID.fromString(orderId), paymentType, status);
+        return ApiResponse.builder()
+                .message("Get order successfully!")
+                .status(HTTP_OK)
+                .data(OrderResponse.fromOrder(order))
                 .build();
     }
     @GetMapping("")

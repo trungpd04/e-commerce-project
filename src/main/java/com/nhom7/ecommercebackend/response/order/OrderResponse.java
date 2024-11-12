@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.model.OrderDetail;
+import com.nhom7.ecommercebackend.response.payment.PaymentResponse;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -43,9 +44,6 @@ public class OrderResponse {
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("total_money")
-    private BigDecimal totalMoney;
-
     @JsonProperty("shipping_method")
     private String shippingMethod = "";
 
@@ -56,17 +54,26 @@ public class OrderResponse {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "UTC")
     private LocalDate shippingDate;
 
-    @JsonProperty("payment_method")
-    private String paymentMethod = "";
+    @JsonProperty("payment_details")
+    private PaymentResponse paymentDetails;
 
     @JsonProperty("order_details")
     private List<OrderDetailResponse> orderDetails;
+
 
     public static OrderResponse fromOrder(Order order) {
         List<OrderDetail> orderDetails = order.getOrderDetails();
         List<OrderDetailResponse> orderDetailResponses = orderDetails
                 .stream()
                 .map(OrderDetailResponse::fromOrderDetail).toList();
+        PaymentResponse paymentResponse = PaymentResponse.builder()
+                .orderId(order.getId())
+                .provider(order.getPayment().getProvider())
+                .amount(order.getPayment().getAmount())
+                .paid(order.getPayment().isPaid())
+                .createdAt(order.getPayment().getCreatedAt())
+                .updatedAt(order.getPayment().getUpdatedAt())
+                .build();
         return OrderResponse
                 .builder()
                 .id(order.getId())
@@ -77,11 +84,10 @@ public class OrderResponse {
                 .note(order.getNote())
                 .orderDate(order.getOrderDate())
                 .status(order.getStatus())
-                .totalMoney(order.getTotalMoney())
                 .shippingMethod(order.getShippingMethod())
                 .shippingAddress(order.getShippingAddress())
                 .shippingDate(order.getShippingDate())
-                .paymentMethod(order.getPaymentMethod())
+                .paymentDetails(paymentResponse)
                 .orderDetails(orderDetailResponses) //important
                 .build();
     }
