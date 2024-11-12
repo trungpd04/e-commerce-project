@@ -50,9 +50,6 @@ public class Order {
     @Column(name = "status")
     private String status;
 
-    @Column(name = "total_money")
-    @Min(value = 0, message = "Total money must be >= 0")
-    private BigDecimal totalMoney;
 
     @Column(name = "shipping_method")
     private String shippingMethod = "";
@@ -66,14 +63,13 @@ public class Order {
     @Column(name = "tracking_number")
     private String trackingNumber;
 
-    @Column(name = "payment_method")
-    private String paymentMethod = "";
-
     @Column(name = "active")
     private Boolean active; //thuộc về admin
 
+    @OneToOne(mappedBy = "order")
+    private Payment payment;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @JsonManagedReference
     private List<OrderDetail> orderDetails;
 
 //    @ManyToOne
