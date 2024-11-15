@@ -43,7 +43,7 @@ public class OrderController {
     public ApiResponse createOrder(
             @Parameter(
                     name = "payment_type",
-                    description = "cash, zalo_pay, vn_pay, momo",
+                    description = "cash, zalopay, vnpay, momo",
                     example = "cash"
             )
             @RequestParam(value = "payment_type", required = false, defaultValue = "cash") String paymentType,
@@ -78,7 +78,7 @@ public class OrderController {
             @RequestParam(value = "status_code", required = true) String status,
             @Parameter(
                     name = "payment_type",
-                    description = "cash, zalo_pay, vn_pay, momo",
+                    description = "cash, zalopay, vnpay, momo",
                     example = "cash"
             )
             @RequestParam(value = "payment_type", required = true) String paymentType
