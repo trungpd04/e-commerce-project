@@ -89,10 +89,10 @@ public class OrderServiceImpl implements OrderService {
                 paymentRepository.save(caspPayment);
                 newOrder.setPayment(caspPayment);
                 break;
-            case "vn_pay":
+            case "vnpay":
                 Payment vnPayPayment = Payment.builder()
                         .amount(totalMoney)
-                        .provider(PaymentProvider.vn_pay)
+                        .provider(PaymentProvider.vnpay)
                         .build();
                 vnPayPayment.setOrder(newOrder);
                 paymentRepository.save(vnPayPayment);
@@ -143,9 +143,9 @@ public class OrderServiceImpl implements OrderService {
                     paymentRepository.save(payment);
                 }
                 break;
-            case "vn_pay":
+            case "vnpay":
                 if(status.equalsIgnoreCase("00")
-                        && payment.getProvider().equals(PaymentProvider.vn_pay)) {
+                        && payment.getProvider().equals(PaymentProvider.vnpay)) {
                     payment.setPaid(true);
                     paymentRepository.save(payment);
                 }

@@ -2,7 +2,7 @@ package com.nhom7.ecommercebackend.model;
 
 public enum PaymentProvider {
     cash,
-    vn_pay,
+    vnpay,
     momo,
-    zalo_pay
+    zalopay
 }
