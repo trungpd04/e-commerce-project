@@ -2,9 +2,11 @@ package com.nhom7.ecommercebackend.configuration;
 
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Order;
+import com.nhom7.ecommercebackend.model.Shipment;
 import com.nhom7.ecommercebackend.model.User;
 import com.nhom7.ecommercebackend.repository.UserRepository;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
+import com.nhom7.ecommercebackend.request.shipment.ShipmentDTO;
 import com.nhom7.ecommercebackend.response.user.UserDetailResponse;
 import com.nhom7.ecommercebackend.exception.MessageKeys;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class AppConfiguration {
         modelMapper.createTypeMap(User.class, UserDetailResponse.class);
         modelMapper.createTypeMap(OrderDTO.class, Order.class)
                 .addMappings(map -> map.skip(Order::setId));
+        modelMapper.createTypeMap(ShipmentDTO.class, Shipment.class);
         return modelMapper;
     }
     @Bean

@@ -30,23 +30,18 @@ public class OrderDTO {
 
     private String note;
 
-
-    @JsonProperty("shipping_method")
-    private String shippingMethod;
-
     @JsonProperty("shipping_address")
     private String shippingAddress;
 
     @JsonProperty("shipping_date")
     private LocalDate shippingDate;
 
-
-//    @JsonProperty("coupon_code")
-//    private String couponCode;
-
     @JsonProperty("cart_items")
     private List<CartItemDTO> cartItems;
 
     @JsonProperty("payment_details")
     private PaymentDTO paymentDetails;
+
+    @JsonProperty("shipment_id")
+    private int shipmentId;
 }

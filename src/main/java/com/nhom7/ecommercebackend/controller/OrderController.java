@@ -1,6 +1,7 @@
 package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
+import com.nhom7.ecommercebackend.exception.UnsupportedShipmentException;
 import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
@@ -9,6 +10,8 @@ import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.response.payment.VNPayResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.service.PaymentService;
+import com.nhom7.ecommercebackend.validation.EnumConstraint;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -37,6 +40,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final PaymentService paymentService;
+
     @PostMapping("")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearer-key")
@@ -48,7 +52,7 @@ public class OrderController {
             )
             @RequestParam(value = "payment_type", required = false, defaultValue = "cash") String paymentType,
             @RequestBody OrderDTO orderDTO
-    ) throws UnsupportedPaymentException {
+    ) throws UnsupportedPaymentException, UnsupportedShipmentException {
         Order newOrder = orderService.createOrder(orderDTO, paymentType);
         return ApiResponse.builder()
                 .message("Place order successfully!")
@@ -134,8 +138,22 @@ public class OrderController {
     public ApiResponse deactivateOrder(@PathVariable("orderId") UUID orderId) {
         orderService.deleteOrder(orderId);
         return ApiResponse.builder()
+
                 .status(HTTP_OK)
                 .message("Deactivate Order successfully!")
+                .build();
+    }
+    @PutMapping("/update_status/{orderId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse updateStatus(
+            @PathVariable("orderId") String orderId,
+            @RequestParam String status
+    ) {
+        return ApiResponse.builder()
+                .message("Update order successfully!")
+                .status(HTTP_OK)
+                .data(OrderResponse.fromOrder(orderService.updateOrderStatus(UUID.fromString(orderId), status)))
                 .build();
     }
     @PostMapping("/checkout/vn-pay")

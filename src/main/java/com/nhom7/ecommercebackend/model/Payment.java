@@ -1,6 +1,7 @@
 package com.nhom7.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.nhom7.ecommercebackend.validation.EnumConstraint;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,7 +26,6 @@ public class Payment extends BaseEntity {
 
     private boolean paid;
 
-    @Enumerated(EnumType.STRING)
     private PaymentProvider provider;
 
     @OneToOne
