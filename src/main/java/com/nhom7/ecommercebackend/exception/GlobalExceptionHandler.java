@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend.exception;
 
 import com.nhom7.ecommercebackend.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -170,7 +171,6 @@ public class GlobalExceptionHandler {
         errors.add(e.getMessage());
         error.setError(errors);
         error.setPath(request.getServletPath());
-
         return error;
     }
     @ExceptionHandler(UnsupportedPaymentException.class)
@@ -183,6 +183,38 @@ public class GlobalExceptionHandler {
         error.setStatus(BAD_REQUEST.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
+    @ExceptionHandler(UnsupportedShipmentException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleUnsupportedShipmentException(HttpServletRequest request, UnsupportedShipmentException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(BAD_REQUEST.value());
+        List<String> errors = new ArrayList<>();
+        errors.add(e.getMessage());
+        error.setError(errors);
+        error.setPath(request.getServletPath());
+
+        return error;
+    }
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(BAD_REQUEST)
+    @ResponseBody
+    public ErrorResponse handleMethodArgumentException(HttpServletRequest request, ConstraintViolationException e) {
+        ErrorResponse error = new ErrorResponse();
+
+        error.setTimeStamp(new Date());
+        error.setStatus(BAD_REQUEST.value());
+        List<String> errors = new ArrayList<>();
+        e.getConstraintViolations().forEach(constraintViolation -> {
+            errors.add(constraintViolation.getMessage());
+        });
         error.setError(errors);
         error.setPath(request.getServletPath());
 

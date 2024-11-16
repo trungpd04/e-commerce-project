@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.Order;
 import com.nhom7.ecommercebackend.model.OrderDetail;
+import com.nhom7.ecommercebackend.model.Shipment;
 import com.nhom7.ecommercebackend.response.payment.PaymentResponse;
 import lombok.*;
 
@@ -44,8 +45,6 @@ public class OrderResponse {
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("shipping_method")
-    private String shippingMethod = "";
 
     @JsonProperty("shipping_address")
     private String shippingAddress = "";
@@ -56,6 +55,9 @@ public class OrderResponse {
 
     @JsonProperty("payment_details")
     private PaymentResponse paymentDetails;
+
+    @JsonProperty("shipment")
+    private Shipment shipment;
 
     @JsonProperty("order_details")
     private List<OrderDetailResponse> orderDetails;
@@ -83,11 +85,11 @@ public class OrderResponse {
                 .buyerEmail(order.getBuyerEmail())
                 .note(order.getNote())
                 .orderDate(order.getOrderDate())
-                .status(order.getStatus())
-                .shippingMethod(order.getShippingMethod())
-                .shippingAddress(order.getShippingAddress())
                 .shippingDate(order.getShippingDate())
+                .status(order.getStatus())
+                .shippingAddress(order.getShippingAddress())
                 .paymentDetails(paymentResponse)
+                .shipment(order.getShipment())
                 .orderDetails(orderDetailResponses) //important
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.nhom7.ecommercebackend.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nhom7.ecommercebackend.validation.EnumConstraint;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
@@ -47,18 +48,19 @@ public class Order {
     @Column(name="order_date")
     private LocalDateTime orderDate;
 
+    @Column(name = "shipping_date")
+    private LocalDate shippingDate;
+
     @Column(name = "status")
+    @EnumConstraint(
+            value = {"pending", "processing", "shipped", "delivered", "cancelled"},
+            message = "Invalid order status"
+    )
     private String status;
 
 
-    @Column(name = "shipping_method")
-    private String shippingMethod = "";
-
     @Column(name = "shipping_address")
     private String shippingAddress = "";
-
-    @Column(name = "shipping_date")
-    private LocalDate shippingDate;
 
     @Column(name = "tracking_number")
     private String trackingNumber;
@@ -68,6 +70,10 @@ public class Order {
 
     @OneToOne(mappedBy = "order")
     private Payment payment;
+
+    @ManyToOne
+    @JoinColumn(name = "shipment_id")
+    private Shipment shipment;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;

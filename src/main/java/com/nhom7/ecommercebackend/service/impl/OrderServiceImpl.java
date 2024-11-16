@@ -3,29 +3,27 @@ package com.nhom7.ecommercebackend.service.impl;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.exception.MessageKeys;
 import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
+import com.nhom7.ecommercebackend.exception.UnsupportedShipmentException;
 import com.nhom7.ecommercebackend.model.*;
-import com.nhom7.ecommercebackend.repository.OrderRepository;
-import com.nhom7.ecommercebackend.repository.PaymentRepository;
-import com.nhom7.ecommercebackend.repository.ProductRepository;
+import com.nhom7.ecommercebackend.repository.*;
 import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
 import com.nhom7.ecommercebackend.request.order.OrderDTO;
 import com.nhom7.ecommercebackend.response.order.OrderResponse;
 import com.nhom7.ecommercebackend.service.OrderService;
 import com.nhom7.ecommercebackend.utils.SecurityUtils;
+import com.nhom7.ecommercebackend.validation.EnumConstraint;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,20 +34,23 @@ public class OrderServiceImpl implements OrderService {
     private final ModelMapper modelMapper;
     private final SecurityUtils userUtil;
     private final PaymentRepository paymentRepository;
+    private final ShipmentRepository shipmentRepository;
 
     @Override
     @Transactional
-    public Order createOrder(OrderDTO orderDTO, String paymentType) throws UnsupportedPaymentException {
+    public Order createOrder(OrderDTO orderDTO, String paymentType)
+            throws UnsupportedPaymentException, UnsupportedShipmentException {
        return placeOrder(orderDTO, paymentType);
     }
 
-    private Order placeOrder(OrderDTO orderDTO, String paymentType) throws UnsupportedPaymentException {
+    private Order placeOrder(OrderDTO orderDTO, String paymentType) throws UnsupportedPaymentException, UnsupportedShipmentException {
         Order newOrder = new Order();
         User user = userUtil.getLoggedInUser();
         modelMapper.map(orderDTO, newOrder);
         newOrder.setBuyerEmail(user.getEmail());
         newOrder.setOrderDate(LocalDateTime.now());//lấy thời điểm hiện tại
         newOrder.setStatus(OrderStatus.PENDING);
+
         LocalDate shippingDate = orderDTO.getShippingDate() == null
                 ? LocalDate.now() : orderDTO.getShippingDate();
 
@@ -74,10 +75,23 @@ public class OrderServiceImpl implements OrderService {
         if (shippingDate.isBefore(LocalDate.now())) {
             throw new DataNotFoundException("Date must be at least today !");
         }
-        BigDecimal totalMoney = orderDetails.stream().map(OrderDetail::getTotalMoney).reduce(BigDecimal.ZERO, BigDecimal::add);
-        newOrder.setShippingDate(shippingDate);
+        Shipment existingShipment = shipmentRepository.findById(orderDTO.getShipmentId())
+                .orElseThrow(() -> new DataNotFoundException("Shipment method not supported"));
+        if(!existingShipment.isActive()) {
+            throw new UnsupportedShipmentException("Shipment method not supported");
+        }
+        BigDecimal totalMoney = orderDetails
+                .stream()
+                .map(OrderDetail::getTotalMoney)
+                .reduce(BigDecimal.ZERO, BigDecimal::add).add(existingShipment.getPrice());
         newOrder.setActive(true);
         newOrder.setUser(user);
+        newOrder.setShipment(existingShipment);
+        newOrder.setOrderDate(LocalDateTime.now());
+
+        LocalDate estimatedShippingDate =
+                shippingDate.plusDays(existingShipment.getEstimatedDay());
+        newOrder.setShippingDate(estimatedShippingDate);
 
         switch (paymentType.trim().toLowerCase()) {
             case "cash":
@@ -152,6 +166,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderRepository.save(existingOrder);
+    }
+
+    @Override
+    public Order updateOrderStatus(
+            UUID orderId,
+            String status
+    ) {
+        Order order =
+                orderRepository.findById(orderId)
+                        .orElseThrow(() -> new DataNotFoundException(MessageKeys.ORDER_NOT_FOUND.toString()));
+        order.setStatus(status);
+        return orderRepository.save(order);
     }
 
 }
