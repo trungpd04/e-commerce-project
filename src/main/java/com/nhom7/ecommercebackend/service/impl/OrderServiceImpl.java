@@ -88,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setUser(user);
         newOrder.setShipment(existingShipment);
         newOrder.setOrderDate(LocalDateTime.now());
-
+        newOrder.setStatus(OrderStatus.PENDING);
         LocalDate estimatedShippingDate =
                 shippingDate.plusDays(existingShipment.getEstimatedDay());
         newOrder.setShippingDate(estimatedShippingDate);
