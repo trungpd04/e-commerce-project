@@ -34,7 +34,8 @@ public class AppConfiguration {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.createTypeMap(User.class, UserDetailResponse.class);
         modelMapper.createTypeMap(OrderDTO.class, Order.class)
-                .addMappings(map -> map.skip(Order::setId));
+                .addMappings(map -> map.skip(Order::setId))
+                        .addMappings(map -> map.skip(Order::setStatus));
         modelMapper.createTypeMap(ShipmentDTO.class, Shipment.class);
         return modelMapper;
     }
