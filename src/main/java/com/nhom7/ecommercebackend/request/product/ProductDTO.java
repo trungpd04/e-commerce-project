@@ -25,9 +25,6 @@ public class ProductDTO {
     private boolean isHot;
     private String thumbnail;
 
-    @JsonProperty("category_id")
-    private Long categoryId;
-
     private List<Long> subcategory;
     private Long quantity;
     @JsonProperty("product_attributes")

@@ -20,6 +20,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/ratings")
 public class RatingController {
+
     private final RatingService ratingService;
 
     @PostMapping("")
@@ -101,4 +102,21 @@ public class RatingController {
                 .comment(rating.getComment())
                 .build();
     }
+
+    @GetMapping("")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse getAllRating(
+            @RequestParam(name = "size", defaultValue = "5", required = false) int size,
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Rating> ratings = ratingService.getAllRating(pageRequest);
+        return ApiResponse.builder()
+                .message("Get all rating successfully")
+                .data(ratings)
+                .status(HTTP_OK)
+                .build();
+    }
+
 }

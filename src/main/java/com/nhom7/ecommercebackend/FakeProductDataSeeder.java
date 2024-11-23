@@ -237,7 +237,6 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 .quantity(random.nextLong(10))
                 .thumbnail(null)
                 .isHot(getRandomBoolean())
-                .categoryId(categoryId)
                 .subcategory(subcategoryIds) // Associate with the selected subcategories
                 .attributeValues(attributeValues)
                 .build();
