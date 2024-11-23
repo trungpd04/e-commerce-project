@@ -19,7 +19,7 @@ public class Payment extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @Column(columnDefinition = "DECIMAL(38, 0)")
     private BigDecimal amount;

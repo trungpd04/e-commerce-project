@@ -21,7 +21,7 @@ public interface RatingRepository extends JpaRepository<Rating, RatingId> {
 
 
     @NonNull
-    Optional<Rating> findById(RatingId id);
+    Optional<Rating> findById(@NonNull RatingId id);
 
     @Query("SELECT r from Rating r where r.id.product.id = :productId")
     List<Rating> findAllByProductId(@Param("productId") Long productId);

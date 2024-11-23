@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.service.impl;
 
+import com.nhom7.ecommercebackend.controller.RatingController;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.*;
@@ -127,4 +128,8 @@ public class RatingServiceImpl implements RatingService {
         return (float) (Math.floor(averageRating * 10) / 10);
     }
 
+    @Override
+    public Page<Rating> getAllRating(PageRequest pageRequest) {
+        return ratingRepository.findAll(pageRequest);
+    }
 }
