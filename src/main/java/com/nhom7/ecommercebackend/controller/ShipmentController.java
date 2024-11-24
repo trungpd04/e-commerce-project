@@ -36,7 +36,7 @@ public class ShipmentController {
     public ApiResponse getAllShipment() {
         return ApiResponse.builder()
                 .status(HTTP_CREATED)
-                .message("Shipment created")
+                .message("Get all shipments successfully")
                 .data(shipmentService.findAll())
                 .build();
     }
@@ -49,7 +49,7 @@ public class ShipmentController {
     ) {
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Shipment created")
+                .message("Shipment updated")
                 .data(shipmentService.updateShipment(id, shipment))
                 .build();
     }
@@ -59,9 +59,10 @@ public class ShipmentController {
     public ApiResponse deleteShipment(
             @PathVariable("shipmentId") int id
     ) {
+        shipmentService.deleteById(id);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Shipment created")
+                .message("Shipment deleted")
                 .build();
     }
 

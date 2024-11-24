@@ -24,10 +24,10 @@ public class Shipment extends BaseEntity {
     private int id;
 
     @Column(name = "type")
-    @EnumConstraint(
-            value = {"free", "standard", "pro" },
-            message = "Invalid shipment method"
-    )
+//    @EnumConstraint(
+//            value = {"free", "standard", "pro" },
+//            message = "Invalid shipment method"
+//    )
     private String type;
 
     private String description;
@@ -37,7 +37,7 @@ public class Shipment extends BaseEntity {
     private BigDecimal price;
 
     @Column(name = "estimated_day")
-    @JsonProperty(namespace = "estimated_day")
+    @JsonProperty("estimated_day")
     private int estimatedDay;
 
     private boolean active;
