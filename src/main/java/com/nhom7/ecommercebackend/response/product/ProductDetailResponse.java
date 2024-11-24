@@ -29,7 +29,8 @@ public class ProductDetailResponse {
 
 //    @JsonProperty("category_name")
 //    private Category category;
-
+    private Long quantity;
+    private boolean isHot;
     private List<SubCategory> subcategory;
 
     @JsonProperty("product_images")
@@ -54,6 +55,8 @@ public class ProductDetailResponse {
                 .thumbnail(product.getThumbnail())
                 .active(product.getActive())
                 .price(product.getPrice())
+                .quantity(product.getQuantity())
+                .isHot(product.isHot())
                 .subcategory(product.getSubcategory())
                 .attributes(attributeValues)
                 .productImages(product.getProductImages())

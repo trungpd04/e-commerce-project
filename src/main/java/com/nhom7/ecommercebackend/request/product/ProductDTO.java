@@ -27,6 +27,7 @@ public class ProductDTO {
 
     private List<Long> subcategory;
     private Long quantity;
+    private boolean active;
     @JsonProperty("product_attributes")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ProductAttributeValueDTO> attributeValues;
