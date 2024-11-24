@@ -21,8 +21,8 @@ public class ShipmentDTO {
     private String type;
     private String description;
 
-    @JsonProperty(namespace = "estimated_date")
-    private int estimatedDate;
+    @JsonProperty("estimated_day")
+    private int estimatedDay;
     private BigDecimal price;
     private boolean active;
 
