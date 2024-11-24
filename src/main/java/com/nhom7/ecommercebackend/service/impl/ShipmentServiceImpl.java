@@ -50,6 +50,9 @@ public class ShipmentServiceImpl implements ShipmentService {
                 .orElseThrow(() -> new UnsupportedTemporalTypeException("Shipment method not supported"));
         shipment.setPrice(shipmentDTO.getPrice());
         shipment.setDescription(shipmentDTO.getDescription());
+        shipment.setType(shipmentDTO.getType());
+        shipment.setActive(shipmentDTO.isActive());
+        shipment.setEstimatedDay(shipmentDTO.getEstimatedDay());
         return shipmentRepository.save(shipment);
     }
 
