@@ -2,6 +2,7 @@ package com.nhom7.ecommercebackend.response.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nhom7.ecommercebackend.model.AuthProvider;
 import com.nhom7.ecommercebackend.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,13 @@ public class UserDetailResponse {
     @JsonProperty("no_password")
     private boolean noPassword;
 
+    @JsonProperty("provider")
+    private AuthProvider provider;
+
+    @JsonProperty("provider_id")
+    private String providerId;
+
+
     public static UserDetailResponse fromUser(User user) {
         return UserDetailResponse.builder()
                 .id(user.getId())
@@ -45,6 +53,8 @@ public class UserDetailResponse {
                 .dateOfBirth(user.getDateOfBirth())
                 .profileImage(user.getProfileImage())
                 .noPassword(!StringUtils.hasText(user.getPassword()))
+                .provider(user.getProvider())
+                .providerId(user.getProviderId())
                 .build();
     }
 }
