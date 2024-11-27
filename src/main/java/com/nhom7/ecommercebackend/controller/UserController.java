@@ -199,8 +199,18 @@ public class UserController {
     public ApiResponse deactivateUser(@PathVariable("userId") Long userId) {
         userService.deleteUser(userId);
         return ApiResponse.builder()
-                .data(HTTP_OK)
-                .message("Deactivate User successfully!")
+                .status(HTTP_OK)
+                .message("Block User successfully!")
+                .build();
+    }
+    @PutMapping("/active/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse activateUser(@PathVariable("userId") Long userId) {
+        userService.activeUser(userId);
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Activate User successfully!")
                 .build();
     }
 

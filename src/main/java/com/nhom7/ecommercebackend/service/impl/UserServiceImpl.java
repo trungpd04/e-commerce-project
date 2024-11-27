@@ -128,7 +128,19 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         user.setActive(false);
+        userRepository.save(user);
     }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void activeUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
+        user.setActive(true);
+        userRepository.save(user);
+    }
+
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
