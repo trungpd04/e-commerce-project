@@ -51,20 +51,17 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderDate(LocalDateTime.now());//lấy thời điểm hiện tại
         newOrder.setStatus(OrderStatus.PENDING);
 
-        LocalDate shippingDate = orderDTO.getShippingDate() == null
-                ? LocalDate.now() : orderDTO.getShippingDate();
 
         List<OrderDetail> orderDetails = new ArrayList<>();
 
         for(CartItemDTO cartItemDTO : orderDTO.getCartItems()) {
             Product existingProduct = productRepository.findProductById(cartItemDTO.getProductId())
                     .orElseThrow(() -> new DataNotFoundException(MessageKeys.PRODUCT_NOT_FOUND.getMessage()));
-            BigDecimal totalMany = existingProduct.getPrice().multiply(new BigDecimal(cartItemDTO.getQuantity()));
             OrderDetail orderDetail = OrderDetail.builder()
                     .order(newOrder)
                     .product(existingProduct)
-                    .numberOfProducts(cartItemDTO.getQuantity())
-                    .totalMoney(totalMany)
+                    .quantity(cartItemDTO.getQuantity())
+                    .price(existingProduct.getPrice())
                     .build();
             orderDetails.add(orderDetail);
         }
@@ -72,25 +69,26 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderDetails(orderDetails);
 
         // nếu ngày ship trước hiện tại thông báo lỗi
-        if (shippingDate.isBefore(LocalDate.now())) {
-            throw new DataNotFoundException("Date must be at least today !");
-        }
         Shipment existingShipment = shipmentRepository.findById(orderDTO.getShipmentId())
                 .orElseThrow(() -> new DataNotFoundException("Shipment method not supported"));
         if(!existingShipment.isActive()) {
             throw new UnsupportedShipmentException("Shipment method not supported");
         }
+
         BigDecimal totalMoney = orderDetails
                 .stream()
-                .map(OrderDetail::getTotalMoney)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).add(existingShipment.getPrice());
+                .map(orderDetail -> orderDetail.getPrice().multiply(new BigDecimal(orderDetail.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .add(existingShipment.getPrice());
+
         newOrder.setActive(true);
         newOrder.setUser(user);
         newOrder.setShipment(existingShipment);
         newOrder.setOrderDate(LocalDateTime.now());
         newOrder.setStatus(OrderStatus.PENDING);
+
         LocalDate estimatedShippingDate =
-                shippingDate.plusDays(existingShipment.getEstimatedDay());
+                LocalDate.now().plusDays(existingShipment.getEstimatedDay());
         newOrder.setShippingDate(estimatedShippingDate);
 
         switch (paymentType.trim().toLowerCase()) {

@@ -56,8 +56,8 @@ public class Order {
             value = {"pending", "processing", "shipped", "delivered", "cancelled"},
             message = "Invalid order status"
     )
-    private String status;
 
+    private String status;
 
     @Column(name = "shipping_address")
     private String shippingAddress = "";
