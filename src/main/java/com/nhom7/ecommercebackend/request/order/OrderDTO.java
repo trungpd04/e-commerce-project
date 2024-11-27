@@ -33,8 +33,6 @@ public class OrderDTO {
     @JsonProperty("shipping_address")
     private String shippingAddress;
 
-    @JsonProperty("shipping_date")
-    private LocalDate shippingDate;
 
     @JsonProperty("cart_items")
     private List<CartItemDTO> cartItems;

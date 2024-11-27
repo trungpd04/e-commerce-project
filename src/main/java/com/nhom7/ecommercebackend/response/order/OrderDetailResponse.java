@@ -13,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 public class OrderDetailResponse {
-    private Long id;
+
 
     @JsonProperty("order_id")
     private UUID orderId;
@@ -27,27 +27,22 @@ public class OrderDetailResponse {
     @JsonProperty("thumbnail")
     private String thumbnail;
 
-    @JsonProperty("unit_price")
+    @JsonProperty("price")
     private BigDecimal price;
 
-    @JsonProperty("number_of_products")
-    private int numberOfProducts;
-
-    @JsonProperty("total_money")
-    private BigDecimal totalMoney;
+    @JsonProperty("quantity")
+    private int quantity;
 
 
     public static OrderDetailResponse fromOrderDetail(OrderDetail orderDetail) {
         return OrderDetailResponse
                 .builder()
-                .id(orderDetail.getId())
                 .orderId(orderDetail.getOrder().getId())
                 .productId(orderDetail.getProduct().getId())
                 .productName(orderDetail.getProduct().getName())
                 .thumbnail(orderDetail.getProduct().getThumbnail())
                 .price(orderDetail.getProduct().getPrice())
-                .numberOfProducts(orderDetail.getNumberOfProducts())
-                .totalMoney(orderDetail.getTotalMoney())
+                .quantity(orderDetail.getQuantity())
                 .build();
     }
 }
