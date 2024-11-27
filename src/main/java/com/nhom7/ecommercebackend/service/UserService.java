@@ -23,6 +23,7 @@ public interface UserService extends UserDetailsService {
     User register(UserDTO userDTO) throws PermissionDenyException, PasswordCreationException;
     User updateUser(User user, UpdateUserDTO userDTO) throws TokenException, ParseException, JOSEException;
     void deleteUser(Long userId);
+    void activeUser(Long userId);
     User findUserById(Long userId);
     Page<UserDetailResponse> getAllUsers(String keyword, PageRequest pageRequest);
     Page<OrderResponse> getMyOrders(Long userId, PageRequest pageRequest);
