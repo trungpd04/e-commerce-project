@@ -8,4 +8,5 @@ import lombok.*;
 @AllArgsConstructor
 public class AttributeDTO {
     private String name;
+    private boolean active;
 }

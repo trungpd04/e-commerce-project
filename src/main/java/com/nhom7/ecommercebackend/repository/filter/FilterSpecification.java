@@ -43,7 +43,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
             predicates.add(keywordFilter);
         }
 
-
         for (Map.Entry<String, String> attributeValue : filter.getAttributeValueMap().entrySet()) {
             if (attributeValue.getKey().equals("page")
                     || attributeValue.getKey().equals("size")
@@ -114,6 +113,9 @@ public class FilterSpecification<Product> implements Specification<Product> {
                 Predicate attributeNamePredicate = criteriaBuilder.equal(
                         productAttributeValueProductAttributeJoin.get("name"), attributeName
                 );
+                Predicate activeAttribute = criteriaBuilder.equal(
+                        productAttributeValueProductAttributeJoin.get("active"), true
+                );
 
                 if (attributeValue.getValue().contains("-")) {
                     String[] range = attributeValue.getValue().split("-");
@@ -129,6 +131,7 @@ public class FilterSpecification<Product> implements Specification<Product> {
                     );
                     predicates.add(criteriaBuilder.and(attributeNamePredicate, attributeValuePredicate));
                 }
+                predicates.add(activeAttribute);
             }
         }
 

@@ -148,6 +148,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 ProductAttribute productAttribute = productAttributeService
                         .createProductAttribute(AttributeDTO.builder()
                                 .name(name)
+                                .active(true)
                                 .build());
                 System.out.println("Product Attribute created: " + name);
             }catch (Exception e) {
