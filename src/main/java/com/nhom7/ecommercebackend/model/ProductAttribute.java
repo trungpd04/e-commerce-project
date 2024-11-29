@@ -20,4 +20,6 @@ public class ProductAttribute  {
     @Column(name = "name", length = 64, nullable = false)
     private String name;
 
+    @Column(name = "active")
+    private boolean active;
 }

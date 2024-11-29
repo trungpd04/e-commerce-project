@@ -1,10 +1,7 @@
 package com.nhom7.ecommercebackend.response.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductImage;
-import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import lombok.*;
 
@@ -39,8 +36,13 @@ public class ProductDetailResponse {
     public static ProductDetailResponse fromProduct(Product product) {
 
         List<ProductAttributeValueResponse> attributeValues = new ArrayList<>();
-
-        product.getAttributeValues().forEach(attributeValue -> {
+        List<ProductAttributeValue> productAttributeValues =
+                product
+                        .getAttributeValues()
+                        .stream()
+                        .filter(productAttributeValue -> productAttributeValue.getProductAttribute().isActive())
+                        .toList();
+        productAttributeValues.forEach(attributeValue -> {
             ProductAttributeValueResponse response = ProductAttributeValueResponse.builder()
                     .name(attributeValue.getProductAttribute().getName())
                     .value(attributeValue.getValue())
