@@ -42,6 +42,8 @@ public class UserDetailResponse {
     @JsonProperty("provider_id")
     private String providerId;
 
+    @JsonProperty("active")
+    private boolean active;
 
     public static UserDetailResponse fromUser(User user) {
         return UserDetailResponse.builder()
@@ -53,6 +55,7 @@ public class UserDetailResponse {
                 .dateOfBirth(user.getDateOfBirth())
                 .profileImage(user.getProfileImage())
                 .noPassword(!StringUtils.hasText(user.getPassword()))
+                .active(user.isActive())
                 .provider(user.getProvider())
                 .providerId(user.getProviderId())
                 .build();
