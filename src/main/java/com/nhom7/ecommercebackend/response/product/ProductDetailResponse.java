@@ -2,7 +2,9 @@ package com.nhom7.ecommercebackend.response.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.*;
+import com.nhom7.ecommercebackend.request.category.CategoryDTO;
 import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
+import com.nhom7.ecommercebackend.response.CategoryResponse;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -23,13 +25,10 @@ public class ProductDetailResponse {
     private String thumbnail;
     private BigDecimal price;
     private boolean active;
-
-//    @JsonProperty("category_name")
-//    private Category category;
     private Long quantity;
     private boolean isHot;
     private List<SubCategory> subcategory;
-
+    private CategoryResponse category;
     @JsonProperty("product_images")
     private List<ProductImage> productImages;
     private List<ProductAttributeValueResponse> attributes;
@@ -60,6 +59,12 @@ public class ProductDetailResponse {
                 .quantity(product.getQuantity())
                 .isHot(product.isHot())
                 .subcategory(product.getSubcategory())
+                .category(CategoryResponse
+                        .builder()
+                        .id(product.getSubcategory().getFirst().getCategory().getId())
+                        .name(product.getSubcategory().getFirst().getCategory().getName())
+                        .build()
+                )
                 .attributes(attributeValues)
                 .productImages(product.getProductImages())
                 .build();

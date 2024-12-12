@@ -25,4 +25,12 @@ public interface RatingRepository extends JpaRepository<Rating, RatingId> {
 
     @Query("SELECT r from Rating r where r.id.product.id = :productId")
     List<Rating> findAllByProductId(@Param("productId") Long productId);
+
+    @Query("select r from Rating r " +
+            "WHERE (:keyword IS NULL OR REPLACE(LOWER(r.id.user.fullName), ' ', '') LIKE REPLACE(LOWER(CONCAT('%', :keyword, '%')),' ', '' )) " +
+            "OR REPLACE(LOWER(r.id.product.name), ' ', '') LIKE REPLACE(LOWER(CONCAT('%', :keyword, '%')),' ', '' )")
+    Page<Rating> findAll(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
 }

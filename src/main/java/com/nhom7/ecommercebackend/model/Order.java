@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.validation.EnumConstraint;
 import jakarta.persistence.*;
@@ -78,8 +79,7 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderDetail> orderDetails;
 
-//    @ManyToOne
-//    @JoinColumn(name = "coupon_id", nullable = true)
-//    @JsonBackReference
-//    private Coupon coupon = null;
+    @OneToOne
+    @JoinColumn(name ="discount_id")
+    private OrderDiscount orderDiscount;
 }

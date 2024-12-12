@@ -129,7 +129,8 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public Page<Rating> getAllRating(PageRequest pageRequest) {
-        return ratingRepository.findAll(pageRequest);
+    public Page<RatingResponse> getAllRating(String keyword, PageRequest pageRequest) {
+        Page<Rating> page = ratingRepository.findAll(keyword, pageRequest);
+        return page.map(RatingResponse::fromRating);
     }
 }
