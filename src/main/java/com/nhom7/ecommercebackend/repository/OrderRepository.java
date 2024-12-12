@@ -37,4 +37,26 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             @Param("user") User user,
             Pageable pageable);
     List<Order> findAllByUserId(Long userId);
+
+    @Query("SELECT month(o.orderDate) AS month, " +
+            "year(o.orderDate) AS year, " +
+            "SUM(od.price * od.quantity) AS revenue " +
+            "FROM Order o join OrderDetail od on o.id = od.order.id " +
+            "where year(o.orderDate) = :year and o.status = 'DELIVERED' " +
+            "GROUP BY month(o.orderDate), year(o.orderDate) " +
+            "ORDER BY month(o.orderDate) desc ")
+    List<Object[]> calculateMonthlyRevenueForYear(@Param("year") int year);
+
+    @Query("SELECT year(o.orderDate) as year, SUM(od.price * od.quantity) AS yearlyrevenue " +
+            "FROM Order o join OrderDetail od on o.id = od.order.id " +
+            "where year(o.orderDate) = :year and o.status = 'DELIVERED'" +
+            "GROUP BY year(o.orderDate)")
+    List<Object[]> calculateRevenueForYear(@Param("year") int year);
+
+    @Query("SELECT od.product.id as productid, sum(od.quantity) as quantity, "+
+            "SUM(od.price * od.quantity) AS productrevenue "+
+            "FROM Order o join OrderDetail od on o.id = od.order.id " +
+            "where o.status = 'DELIVERED'" +
+            "GROUP BY od.product.id")
+    Page<Object[]> calculateProductRevenue(Pageable pageable);
 }

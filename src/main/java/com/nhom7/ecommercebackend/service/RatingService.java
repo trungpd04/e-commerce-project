@@ -12,5 +12,5 @@ public interface RatingService {
     void deleteRating(Long userId, Long productId);
     Page<RatingResponse> getRatingByProductId(Long productId, PageRequest pageRequest);
     float calculateAverageRating(Long productId);
-    Page<Rating> getAllRating(PageRequest pageRequest);
+    Page<RatingResponse> getAllRating(String keyword, PageRequest pageRequest);
 }

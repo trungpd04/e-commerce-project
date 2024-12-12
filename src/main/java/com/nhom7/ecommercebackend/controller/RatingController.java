@@ -108,10 +108,11 @@ public class RatingController {
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse getAllRating(
             @RequestParam(name = "size", defaultValue = "5", required = false) int size,
-            @RequestParam(name = "page", defaultValue = "0", required = false) int page
+            @RequestParam(name = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(name = "keyword", defaultValue = "", required = false) String keyword
     ) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<Rating> ratings = ratingService.getAllRating(pageRequest);
+        Page<RatingResponse> ratings = ratingService.getAllRating(keyword, pageRequest);
         return ApiResponse.builder()
                 .message("Get all rating successfully")
                 .data(ratings)
