@@ -11,5 +11,9 @@ import java.util.List;
 public interface StatisticsService {
     List<MonthlyRevenue> getMonthlyRevenue(int year);
     YearlyRevenue getYearlyRevenue(int year);
-    Page<ProductRevenue> getProductRevenue(PageRequest request);
+    Page<ProductRevenue> getProductRevenue(
+            int month,
+            int year,
+            PageRequest request
+    );
 }

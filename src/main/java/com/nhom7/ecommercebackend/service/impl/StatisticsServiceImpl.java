@@ -55,14 +55,16 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     @Override
-    public Page<ProductRevenue> getProductRevenue(PageRequest request) {
+    public Page<ProductRevenue> getProductRevenue(int month, int year, PageRequest request) {
         Page<Object[]> getProductRevenue =
-                orderRepository.calculateProductRevenue(request);
+                orderRepository.calculateProductRevenue(month, year, request);
         return getProductRevenue.map(objects -> {
             return new ProductRevenue(
-                    (long) objects[0],
-                    (long) objects[1],
-                    (BigDecimal) objects[2]
+                    (int) objects[0],
+                    (int) objects[1],
+                    (long) objects[2],
+                    (long) objects[3],
+                    (BigDecimal) objects[4]
             );
         });
     }

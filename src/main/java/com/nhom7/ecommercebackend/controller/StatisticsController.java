@@ -49,6 +49,8 @@ public class StatisticsController {
     @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse getProductRevenue(
+            @RequestParam(name = "month", required = false, defaultValue = "0") int month,
+            @RequestParam(name = "year", required = false, defaultValue = "0") int year,
             @RequestParam(name = "size", required = false, defaultValue = "5") int size,
             @RequestParam(name = "page", required = false, defaultValue = "0") int page
     ) {
@@ -57,7 +59,7 @@ public class StatisticsController {
                 .builder()
                 .message("Product statistics")
                 .status(HTTP_OK)
-                .data(statisticsService.getProductRevenue(request))
+                .data(statisticsService.getProductRevenue(month, year, request))
                 .build();
     }
 }

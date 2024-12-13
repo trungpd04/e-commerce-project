@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductRevenue {
 
+    private int month;
+    private int year;
     @JsonProperty("product_id")
     private Long productId;
 
