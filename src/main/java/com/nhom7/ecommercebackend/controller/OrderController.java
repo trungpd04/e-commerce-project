@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.controller;
 
+import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
 import com.nhom7.ecommercebackend.exception.UnsupportedShipmentException;
 import com.nhom7.ecommercebackend.model.Order;
@@ -149,11 +150,14 @@ public class OrderController {
     public ApiResponse updateStatus(
             @PathVariable("orderId") String orderId,
             @RequestParam String status
-    ) {
+    ) throws InvalidParamException {
         return ApiResponse.builder()
                 .message("Update order successfully!")
                 .status(HTTP_OK)
-                .data(OrderResponse.fromOrder(orderService.updateOrderStatus(UUID.fromString(orderId), status)))
+                .data(
+                        OrderResponse
+                                .fromOrder(orderService.updateOrderStatus(UUID.fromString(orderId), status))
+                )
                 .build();
     }
     @PostMapping("/checkout/vn-pay")

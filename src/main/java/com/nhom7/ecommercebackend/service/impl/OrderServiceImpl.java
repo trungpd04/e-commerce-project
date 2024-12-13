@@ -1,9 +1,6 @@
 package com.nhom7.ecommercebackend.service.impl;
 
-import com.nhom7.ecommercebackend.exception.DataNotFoundException;
-import com.nhom7.ecommercebackend.exception.MessageKeys;
-import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
-import com.nhom7.ecommercebackend.exception.UnsupportedShipmentException;
+import com.nhom7.ecommercebackend.exception.*;
 import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.*;
 import com.nhom7.ecommercebackend.request.cart.CartItemDTO;
@@ -170,12 +167,23 @@ public class OrderServiceImpl implements OrderService {
     public Order updateOrderStatus(
             UUID orderId,
             String status
-    ) {
+    ) throws InvalidParamException {
         Order order =
                 orderRepository.findById(orderId)
                         .orElseThrow(() -> new DataNotFoundException(MessageKeys.ORDER_NOT_FOUND.toString()));
-        order.setStatus(status);
+        if(!status.trim().equalsIgnoreCase("cancelled")) {
+            if(order.getPayment().isPaid()) {
+                order.setStatus(status);
+            }else{
+                throw new InvalidParamException("Unpaid Order");
+            }
+        }else{
+            if(status.trim().equalsIgnoreCase("cancelled")) {
+                order.setStatus("cancelled");
+            }else{
+                throw new InvalidParamException("Status not supported");
+            }
+        }
         return orderRepository.save(order);
     }
-
 }
