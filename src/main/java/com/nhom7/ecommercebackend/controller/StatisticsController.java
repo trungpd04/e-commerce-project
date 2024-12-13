@@ -49,8 +49,8 @@ public class StatisticsController {
     @SecurityRequirement(name = "bearer-key")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse getProductRevenue(
-            @RequestParam(name = "month", required = false, defaultValue = "0") int month,
-            @RequestParam(name = "year", required = false, defaultValue = "0") int year,
+            @RequestParam(name = "month", required = true) int month,
+            @RequestParam(name = "year", required = true) int year,
             @RequestParam(name = "size", required = false, defaultValue = "5") int size,
             @RequestParam(name = "page", required = false, defaultValue = "0") int page
     ) {
