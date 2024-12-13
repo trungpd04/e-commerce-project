@@ -53,10 +53,20 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             "GROUP BY year(o.orderDate)")
     List<Object[]> calculateRevenueForYear(@Param("year") int year);
 
-    @Query("SELECT od.product.id as productid, sum(od.quantity) as quantity, "+
+    @Query("SELECT " +
+            "month(o.orderDate) as month, " +
+            "year(o.orderDate) as year, " +
+            "od.product.id as productid, " +
+            "sum(od.quantity) as quantity, "+
             "SUM(od.price * od.quantity) AS productrevenue "+
             "FROM Order o join OrderDetail od on o.id = od.order.id " +
-            "where o.status = 'DELIVERED'" +
-            "GROUP BY od.product.id")
-    Page<Object[]> calculateProductRevenue(Pageable pageable);
+            "where o.status = 'DELIVERED' " +
+            "and month(o.orderDate) = :month " +
+            "and year(o.orderDate) = :year " +
+            "GROUP BY od.product.id, month(o.orderDate), year(o.orderDate)")
+    Page<Object[]> calculateProductRevenue(
+            @Param("month") int month,
+            @Param("year") int year,
+            Pageable pageable
+    );
 }
