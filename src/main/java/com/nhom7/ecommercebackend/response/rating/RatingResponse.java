@@ -14,6 +14,9 @@ public class RatingResponse {
     @JsonProperty("user_full_name")
     private String userFullName;
 
+    @JsonProperty("product_id")
+    private Long productId;
+
     @JsonProperty("rate")
     private int rate;
 
@@ -29,6 +32,7 @@ public class RatingResponse {
     public static RatingResponse fromRating(Rating rating) {
         return RatingResponse.builder()
                 .userFullName(rating.getId().getUser().getFullName())
+                .productId(rating.getId().getProduct().getId())
                 .rate(rating.getRate())
                 .comment(rating.getComment())
                 .createdAt(rating.getCreatedAt())
