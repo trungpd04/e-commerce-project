@@ -37,6 +37,7 @@ public class RatingServiceImpl implements RatingService {
                 .orElseThrow(() -> new DataNotFoundException(MessageKeys.USER_NOT_EXIST.toString()));
         Product product = productRepository.findProductById(ratingDTO.getProductId())
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
+
         Optional<Rating> existRating = ratingRepository
                 .findById(RatingId.builder()
                         .product(product)

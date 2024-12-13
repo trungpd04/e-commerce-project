@@ -1,5 +1,6 @@
 package com.nhom7.ecommercebackend.service;
 
+import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.exception.UnsupportedPaymentException;
 import com.nhom7.ecommercebackend.exception.UnsupportedShipmentException;
 import com.nhom7.ecommercebackend.model.Order;
@@ -20,5 +21,5 @@ public interface OrderService {
     Page<OrderResponse> getAllOrder(String keyword, String status, PageRequest pageRequest);
     Page<OrderResponse> getMyOrders(User user, String status, PageRequest pageRequest);
     Order updatePaymentStatus(UUID orderId, String paymentType, String status);
-    Order updateOrderStatus(UUID orderId, String status);
+    Order updateOrderStatus(UUID orderId, String status) throws InvalidParamException;
 }
