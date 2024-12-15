@@ -34,8 +34,6 @@ public class ProductAttributeController {
     }
 
     @GetMapping("")
-    @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-key")
     public ApiResponse getAllProductAttribute(
             @RequestParam(value = "size", defaultValue = "10", required = false) int size,
             @RequestParam(value = "page", defaultValue = "0", required = false) int page
