@@ -58,6 +58,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         final String[] PUBLIC_ENDPOINT_GET = {
                 String.format("%s/products/**", API_PREFIX),
+                String.format("%s/attributes/**", API_PREFIX),
                 String.format("%s/categories/**",API_PREFIX),
                 String.format("%s/orders/checkout/vn-pay/callback", API_PREFIX),
                 String.format("%s/users/oauth2/social/callback", API_PREFIX),

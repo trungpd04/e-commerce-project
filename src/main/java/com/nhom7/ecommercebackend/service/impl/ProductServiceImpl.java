@@ -75,6 +75,7 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setThumbnail(productDTO.getThumbnail());
         existingProduct.setDescription(productDTO.getDescription());
         existingProduct.setSubcategory(subCategories);
+        existingProduct.setQuantity(productDTO.getQuantity());
         existingProduct.setActive(productDTO.isActive());
         if (productDTO.getAttributeValues() != null) {
             for (ProductAttributeValueDTO productAttributeValueDTO : productDTO.getAttributeValues()) {
