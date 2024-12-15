@@ -1,17 +1,16 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
-import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductAttribute;
-import com.nhom7.ecommercebackend.model.SubCategory;
+import com.nhom7.ecommercebackend.model.*;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
+import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
 import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
+import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
@@ -93,10 +92,13 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     private final List<String> asusModels  = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
+    private final ProductRepository productRepository;
 
 
     @Override
     public void run(String... args) throws Exception {
+        List<String> productImages = getRandomImagesFromUploads("uploads/");
+        Collections.shuffle(productImages);
         for(String categoryName : this.categoryName) {
             try{
                 Category category = categoryService.creatCategory(
@@ -160,7 +162,13 @@ public class FakeProductDataSeeder implements CommandLineRunner {
             if (productDTO != null) {
                 try {
                     Product product = productService.createProduct(productDTO);
-
+                    Collections.shuffle(productImages);
+                    for(int a = 0; a < 5; a++) {
+                        productService.createProductImage(
+                                product.getId(),
+                                ProductImageDTO.builder().imageUrl(productImages.get(a)).build()
+                        );
+                    }
                     System.out.println("Product " + (i + 1) + " created: " + productDTO.getName());
                 } catch (Exception e) {
 
@@ -170,13 +178,24 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         }
     }
 
-    public List<String> listFilesUsingFilesList(String dir) throws IOException {
+    private List<String> getRandomImagesFromUploads(String dir) {
         try (Stream<Path> stream = Files.list(Paths.get(dir))) {
-            return stream
+            List<String> files = stream
                     .filter(file -> !Files.isDirectory(file))
                     .map(Path::getFileName)
                     .map(Path::toString)
+                    .filter(name -> name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg") || name.endsWith(".webp"))
                     .collect(Collectors.toList());
+
+            if (files.isEmpty()) {
+                throw new RuntimeException("No image files found in " + dir);
+            }
+
+            // Lấy ngẫu nhiên n file ảnh
+            Collections.shuffle(files);// Trộn danh sách file
+            return new ArrayList<>(files);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to list files in " + dir, e);
         }
     }
 
@@ -235,7 +254,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 .name(productName)
                 .description(faker.lorem().sentence())
                 .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000000, 4000000))))
-                .quantity(random.nextLong(10))
+                .quantity(random.nextLong(10 - 1 + 1) + 1)
                 .thumbnail(null)
                 .isHot(getRandomBoolean())
                 .subcategory(subcategoryIds) // Associate with the selected subcategories
