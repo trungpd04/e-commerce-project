@@ -73,9 +73,12 @@ public class CategoryServiceImpl implements CategoryService {
         SubCategory existSubcategory = subCategoryRepository.findByName(subCategoryDTO.getSubCategoryName())
                 .orElseThrow(() -> new DataNotFoundException("Subcategory does not exist!"));
         Category category = getCategoryById(categoryId);
+        Category existingCategory = categoryRepository.findBySubCategoryListContaining(existSubcategory);
+        if(existingCategory != null) {
+            throw new DataIntegrityViolationException("Subcategory has already been added!");
+        }
         category.getSubCategoryList().add(existSubcategory);
         existSubcategory.setCategory(category);
         return categoryRepository.save(category);
     }
-
 }
