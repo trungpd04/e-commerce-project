@@ -60,6 +60,11 @@ public class OrderServiceImpl implements OrderService {
                     .quantity(cartItemDTO.getQuantity())
                     .price(existingProduct.getPrice())
                     .build();
+            existingProduct.setQuantity(existingProduct.getQuantity() - 1);
+            if(existingProduct.getQuantity() <= 0) {
+                existingProduct.setQuantity(0L);
+            }
+            productRepository.save(existingProduct);
             orderDetails.add(orderDetail);
         }
 

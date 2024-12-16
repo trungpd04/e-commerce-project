@@ -27,7 +27,7 @@ public class ProductResponse {
 
     @JsonProperty("is_hot")
     private boolean isHot;
-
+    private Long quantity;
     private List<ProductAttributeValueResponse> attributes;
     @JsonProperty("category_name")
     private String category;
@@ -59,6 +59,7 @@ public class ProductResponse {
                 .active(product.getActive())
                 .price(product.getPrice())
                 .isHot(product.isHot())
+                .quantity(product.getQuantity())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .category(product.getSubcategory().getFirst().getCategory().getName())
