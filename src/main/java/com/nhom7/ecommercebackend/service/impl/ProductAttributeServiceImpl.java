@@ -22,6 +22,7 @@ public class ProductAttributeServiceImpl implements ProductAttributeService {
 
     private final ProductAttributeRepository productAttributeRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
+
     @Override
     @Transactional
     public ProductAttribute createProductAttribute(AttributeDTO attributeDTO) {
