@@ -51,7 +51,7 @@ public class ProductController {
 
     @GetMapping("")
     @Operation(summary = "Get all products with optional filters")
-    public ApiResponse getAllProductsFilter(
+    public ApiResponse getAllActiveProductsFilter(
             @Parameter(
                     description = "Lọc sản phẩm theo 1 hoặc nhiều thuộc tính. ( Dùng account Admin để xem tất cả các thuộc tính hiện có  ) " + "\n" +
                             "Example keys: `mobile_storage`, `laptop_ram`, `category_id`, `subcategory_id`. " + "\n" +
@@ -67,6 +67,57 @@ public class ProductController {
             @RequestParam(value = "sort_dir", required = false, defaultValue = "asc") String sortDir
     ) {
         PageRequest pageRequest = null;
+        Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        if(attributeValue.get("sort_by").equalsIgnoreCase("rating")) {
+            pageRequest = PageRequest.of(page, size);
+        }else{
+            Sort sort = Sort.by(sortDirection, sortBy.trim().toLowerCase());
+            pageRequest = PageRequest.of(page, size, sort);
+        }
+
+        Filter filter = new Filter(attributeValue);
+        Page<ProductResponse> productResponses = productService
+                .getAllActiveProductFilter(filter, pageRequest);
+        int pageNo = productResponses.getNumber();
+        int pageSize = productResponses.getSize();
+        int totalPages = productResponses.getTotalPages();
+        long totalElements = productResponses.getTotalElements();
+        boolean last = productResponses.isLast();
+        ProductListResponse productListResponse = ProductListResponse
+                .builder()
+                .productResponses(productResponses.getContent())
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .totalPages(totalPages)
+                .totalElements(totalElements)
+                .last(last)
+                .build();
+        return ApiResponse.builder()
+                .message("Fetch product successfully!")
+                .status(HTTP_OK)
+                .data(productListResponse)
+                .build();
+    }
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Get all products with optional filters by Admin")
+    public ApiResponse getAllProductsFilter(
+            @Parameter(
+                    description = "Lọc sản phẩm theo 1 hoặc nhiều thuộc tính. ( Dùng account Admin để xem tất cả các thuộc tính hiện có  ) " + "\n" +
+                            "Example keys: `mobile_storage`, `laptop_ram`, `category_id`, `subcategory_id`. " + "\n" +
+                            "Có thể lọc theo khoảng hoặc có thể lọc theo giá trị cố định tùy vào mục đích và từng thuộc tính. " + "\n" +
+                            "Example: `{ \"mobile_ram\" : \"4-10\" }`, `{ \"mobile_storage\" : \"128\" }`, `{ \"laptop_ram\" : \"16\" }`, `{ \"category_id\" : \"1\" }`, `{ \"subcategory_id\" : \"1\" }`.",
+                    in = ParameterIn.QUERY,
+                    name = "attributeValue"
+            )
+            @RequestParam(defaultValue = "") Map<String, String> attributeValue,
+            @RequestParam(value = "page", defaultValue = "0", required = false) Integer page,
+            @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
+            @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
+            @RequestParam(value = "sort_dir", required = false, defaultValue = "asc") String sortDir
+    ) {
+        PageRequest pageRequest;
         Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
         if(attributeValue.get("sort_by").equalsIgnoreCase("rating")) {
             pageRequest = PageRequest.of(page, size);
@@ -93,7 +144,7 @@ public class ProductController {
                 .last(last)
                 .build();
         return ApiResponse.builder()
-                .message("Fetch product successfully!")
+                .message("Fetch product by admin successfully!")
                 .status(HTTP_OK)
                 .data(productListResponse)
                 .build();

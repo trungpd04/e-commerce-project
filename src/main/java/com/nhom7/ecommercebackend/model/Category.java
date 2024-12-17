@@ -24,6 +24,9 @@ public class Category extends BaseEntity {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column
+    private boolean active;
+
     @OneToMany(mappedBy = "category",
             cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH},
             orphanRemoval = false)

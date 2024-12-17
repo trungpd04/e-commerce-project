@@ -27,6 +27,11 @@ public class ShipmentServiceImpl implements ShipmentService {
 
     @Override
     public List<Shipment> findAll() {
+        return shipmentRepository.findAll().stream().filter(Shipment::isActive).toList();
+    }
+
+    @Override
+    public List<Shipment> findAllByAdmin() {
         return shipmentRepository.findAll();
     }
 

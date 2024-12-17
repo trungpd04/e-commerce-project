@@ -12,6 +12,7 @@ public interface CategoryService {
     void deleteCategory(Long categoryId);
     Category updateCategory(Long categoryId, CategoryDTO categoryDTO);
     List<Category> getAllCategory();
+    List<Category> getAllCategoryByAdmin();
     Category getCategoryById(Long categoryId);
     Category addSubcategory(Long categoryId, SubCategoryDTO subCategoryDTO);
 }

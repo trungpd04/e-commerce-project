@@ -31,13 +31,23 @@ public class ShipmentController {
                 .build();
     }
     @SecurityRequirement(name = "bearer-key")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("")
     public ApiResponse getAllShipment() {
         return ApiResponse.builder()
                 .status(HTTP_CREATED)
                 .message("Get all shipments successfully")
                 .data(shipmentService.findAll())
+                .build();
+    }
+    @SecurityRequirement(name = "bearer-key")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public ApiResponse getAllShipmentByAdmin() {
+        return ApiResponse.builder()
+                .status(HTTP_CREATED)
+                .message("Get all shipments by admin successfully")
+                .data(shipmentService.findAllByAdmin())
                 .build();
     }
     @SecurityRequirement(name = "bearer-key")
