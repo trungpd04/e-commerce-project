@@ -48,7 +48,7 @@ public class CategoryController {
 
     }
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/admin")
+    @GetMapping("/admin")
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse getAllCategory() {
         return ApiResponse.builder()
