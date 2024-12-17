@@ -40,12 +40,8 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                  new DataNotFoundException("Category does not exist!"));
-        List<SubCategory> subCategories = subCategoryRepository.findByCategory(category);
-        subCategories.forEach(subCategory -> {
-            subCategory.setCategory(null);
-            subCategoryRepository.save(subCategory);
-        });
-        categoryRepository.delete(category);
+        category.setActive(false);
+        categoryRepository.save(category);
     }
 
     @Override
@@ -59,6 +55,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getAllCategory() {
+        return categoryRepository.findAll().stream().filter(Category::isActive).toList();
+    }
+
+    @Override
+    public List<Category> getAllCategoryByAdmin() {
         return categoryRepository.findAll();
     }
 

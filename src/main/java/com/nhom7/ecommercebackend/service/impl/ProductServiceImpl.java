@@ -32,6 +32,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductImageRepository productImageRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
     private final ProductAttributeRepository productAttributeRepository;
+    private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
     @Override
     @Transactional
@@ -55,6 +57,11 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(Long productId) throws DataNotFoundException {
         Product product = productRepository.findProductById(productId)
                         .orElseThrow(() -> new DataNotFoundException("Product not found for ID: " + productId));
+        OrderDetail orderDetail = orderDetailRepository.findByProductId(productId);
+        if (orderDetail.getOrder().getStatus().equalsIgnoreCase("pending")
+        || orderDetail.getOrder().getStatus().equalsIgnoreCase("processing")) {
+            throw new DataIntegrityViolationException("Can not delete the processing product! Please process the order ");
+        }
         product.setActive(false); // xóa mềm
         productRepository.save(product);
     }
@@ -128,13 +135,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public String getProductAttribute() {
-        StringJoiner stringJoiner = new StringJoiner(", ");
-        List<ProductAttribute> productAttributes = productAttributeRepository.findAll();
-        for(ProductAttribute productAttribute : productAttributes) {
-            stringJoiner.add(productAttribute.getName());
-        }
-        return stringJoiner.toString();
+    public Page<ProductResponse> getAllActiveProductFilter(Filter filter, PageRequest pageRequest) {
+        Page<Product> productPage;
+        Specification<Product> specification = new FilterSpecification<>(filter);
+
+        specification = specification.and((root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("active"), true)
+        );
+
+        productPage = productRepository.findAll(specification, pageRequest);
+        return productPage.map(ProductResponse::fromProduct);
     }
 
     private Product buildProduct(ProductDTO productDTO, Long... productId) {

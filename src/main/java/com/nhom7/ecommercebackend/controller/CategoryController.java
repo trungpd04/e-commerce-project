@@ -39,7 +39,7 @@ public class CategoryController {
                 .build();
     }
     @GetMapping("")
-    public ApiResponse getAllCategory() {
+    public ApiResponse getAllActiveCategory() {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get all category successfully!")
@@ -48,13 +48,23 @@ public class CategoryController {
 
     }
     @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/admin")
+    @SecurityRequirement(name = "bearer-key")
+    public ApiResponse getAllCategory() {
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get all category by admin successfully!")
+                .data(categoryService.getAllCategoryByAdmin())
+                .build();
+    }
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{categoryId}")
     @SecurityRequirement(name = "bearer-key")
     public ApiResponse deleteCategoryById(@PathVariable("categoryId") Long categoryId) {
         categoryService.deleteCategory(categoryId);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .message("Get category by Id successfully!")
+                .message("Deactivate category successfully!")
                 .build();
     }
     @PutMapping("/{categoryId}")

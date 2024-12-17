@@ -22,4 +22,5 @@ public class CategoryDTO {
     @Range(min = 3, message = "Category name must have at least 3 characters")
     private String name;
 
+    private boolean active;
 }
