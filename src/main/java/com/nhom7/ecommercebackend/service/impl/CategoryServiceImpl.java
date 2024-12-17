@@ -50,6 +50,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new DataNotFoundException("Category does not exist!"));
         category.setName(categoryDTO.getName());
+        category.setActive(categoryDTO.isActive());
         return categoryRepository.save(category);
     }
 

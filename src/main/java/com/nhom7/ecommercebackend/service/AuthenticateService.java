@@ -21,5 +21,4 @@ public interface AuthenticateService {
     void clearSecurity() throws TokenException, ParseException, JOSEException;
     AuthenticationResponse exchangeToken(String code, String loginType) throws UnsupportedLoginException, UnsupportedEncodingException;
     String getOauth2LoginURL(String loginType);
-
 }
