@@ -29,7 +29,10 @@ public class CategoryServiceImpl implements CategoryService {
         if(!categoryDTO.getName().isBlank() && categoryRepository.existsByName(categoryDTO.getName())) {
             throw new DataIntegrityViolationException("Category name has already exist!");
         }
-        Category newCategory = Category.builder().name(categoryDTO.getName()).build();
+        Category newCategory = Category.builder()
+                .name(categoryDTO.getName())
+                .active(categoryDTO.isActive())
+                .build();
         newCategory.setSubCategoryList(new ArrayList<>());
         categoryRepository.save(newCategory);
         return newCategory;
