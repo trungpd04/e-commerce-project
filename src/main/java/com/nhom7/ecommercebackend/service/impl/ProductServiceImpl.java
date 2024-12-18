@@ -57,12 +57,17 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProduct(Long productId) throws DataNotFoundException {
         Product product = productRepository.findProductById(productId)
                         .orElseThrow(() -> new DataNotFoundException("Product not found for ID: " + productId));
-        OrderDetail orderDetail = orderDetailRepository.findByProductId(productId);
-        if (orderDetail.getOrder().getStatus().equalsIgnoreCase("pending")
-        || orderDetail.getOrder().getStatus().equalsIgnoreCase("processing")) {
-            throw new DataIntegrityViolationException("Can not delete the processing product! Please process the order ");
+        List<OrderDetail> orderDetail = orderDetailRepository.findAllByProductId(productId);
+        if(!orderDetail.isEmpty()){
+            for (OrderDetail orderDetail1 : orderDetail) {
+                if (orderDetail1.getOrder().getStatus().equalsIgnoreCase("pending")
+                        || orderDetail1.getOrder().getStatus().equalsIgnoreCase("processing")) {
+                    throw new DataIntegrityViolationException("Can not delete the processing product! Please process the order ");
+                }
+            }
+        }else{
+            product.setActive(false);
         }
-        product.setActive(false); // xóa mềm
         productRepository.save(product);
     }
 
@@ -84,6 +89,7 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setSubcategory(subCategories);
         existingProduct.setQuantity(productDTO.getQuantity());
         existingProduct.setActive(productDTO.isActive());
+        existingProduct.setHot(productDTO.isHot());
         if (productDTO.getAttributeValues() != null) {
             for (ProductAttributeValueDTO productAttributeValueDTO : productDTO.getAttributeValues()) {
                 String attributeName = productAttributeValueDTO.getAttributeName();
