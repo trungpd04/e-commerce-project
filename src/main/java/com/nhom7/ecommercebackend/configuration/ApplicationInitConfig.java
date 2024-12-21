@@ -27,7 +27,8 @@ public class ApplicationInitConfig {
 
     static String ADMIN_PHONE = "0123456789";
     static String ADMIN_EMAIL = "admin@admin.com";
-    static String ADMIN_PASSWORD = "admin";
+    static String ADMIN_PASSWORD = "admin123456789";
+    static String ADMIN_FULL_NAME = "admin";
 
     static String USER_PHONE = "0123456788";
     static String USER_EMAIL = "user@user.com";
@@ -52,6 +53,7 @@ public class ApplicationInitConfig {
                 User user = User.builder()
                         .email(ADMIN_EMAIL)
                         .phoneNumber(ADMIN_PHONE)
+                        .fullName(ADMIN_FULL_NAME)
                         .password(passwordEncoder.encode(ADMIN_PASSWORD))
                         .email(ADMIN_EMAIL)
                         .role(role)
