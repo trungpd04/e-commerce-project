@@ -252,7 +252,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         // Build the ProductDTO
         return ProductDTO.builder()
                 .name(productName)
-                .description(faker.lorem().sentence())
+                .description("Sản phẩm này được bán tại CyberTechShop")
                 .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000000, 4000000))))
                 .quantity(random.nextLong(10 - 1 + 1) + 1)
                 .thumbnail(null)

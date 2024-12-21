@@ -118,15 +118,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
     public ErrorResponse handleTokenException(HttpServletRequest request, TokenException e) {
-        ErrorResponse error = new ErrorResponse();
 
+        ErrorResponse error = new ErrorResponse();
         error.setTimeStamp(new Date());
         error.setStatus(UNAUTHORIZED.value());
         List<String> errors = new ArrayList<>();
         errors.add(e.getMessage());
         error.setError(errors);
         error.setPath(request.getServletPath());
-
         return error;
     }
     @ExceptionHandler(PermissionDenyException.class)

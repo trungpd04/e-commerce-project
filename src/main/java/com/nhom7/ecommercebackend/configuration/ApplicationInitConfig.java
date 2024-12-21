@@ -25,9 +25,13 @@ public class ApplicationInitConfig {
 
     private final PasswordEncoder passwordEncoder;
 
-    static String ADMIN_PHONE = "admin";
-    static String ADMIN_EMAIL = "admin";
+    static String ADMIN_PHONE = "0123456789";
+    static String ADMIN_EMAIL = "admin@admin.com";
     static String ADMIN_PASSWORD = "admin";
+
+    static String USER_PHONE = "0123456788";
+    static String USER_EMAIL = "user@user.com";
+    static String USER_PASSWORD = "123456789";
 
     @Bean
     ApplicationRunner applicationRunner(
@@ -63,6 +67,19 @@ public class ApplicationInitConfig {
                 }else{
                     log.info("User role already exists");
                 }
+            }
+            if(userRepository.findByEmailAndPasswordNotNull(USER_EMAIL).isEmpty()) {
+                Role role = roleRepository.findByName("USER");
+                User user = User.builder()
+                        .email(USER_EMAIL)
+                        .phoneNumber(USER_PHONE)
+                        .password(passwordEncoder.encode(USER_PASSWORD))
+                        .email(USER_EMAIL)
+                        .role(role)
+                        .active(true)
+                        .build();
+                userRepository.save(user);
+                log.warn("user has been created with default account and password: user@user.com, 123456789");
             }
             log.info("Application initialization completed .....");
         };
