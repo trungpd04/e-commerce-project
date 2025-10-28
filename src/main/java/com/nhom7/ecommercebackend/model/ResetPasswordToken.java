@@ -19,6 +19,7 @@ public class ResetPasswordToken {
     private Long id;
     private String token;
     private Date expiryDate;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;

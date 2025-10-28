@@ -157,7 +157,7 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 System.out.println(e.getMessage());
             }
         }
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 200000; i++) {
             ProductDTO productDTO = generateUniqueProduct();
             if (productDTO != null) {
                 try {

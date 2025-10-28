@@ -21,7 +21,6 @@ import java.util.List;
 public class ProductAttributeServiceImpl implements ProductAttributeService {
 
     private final ProductAttributeRepository productAttributeRepository;
-    private final ProductAttributeValueRepository productAttributeValueRepository;
 
     @Override
     @Transactional

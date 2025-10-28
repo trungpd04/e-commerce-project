@@ -1,15 +1,19 @@
 package com.nhom7.ecommercebackend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nhom7.ecommercebackend.exception.InvalidParamException;
 import com.nhom7.ecommercebackend.model.Product;
 import com.nhom7.ecommercebackend.model.ProductImage;
+import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.repository.filter.Filter;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
 import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
+import com.nhom7.ecommercebackend.response.PaginationResponse;
 import com.nhom7.ecommercebackend.response.product.ProductDetailResponse;
 import com.nhom7.ecommercebackend.response.product.ProductListResponse;
 import com.nhom7.ecommercebackend.response.product.ProductResponse;
+import com.nhom7.ecommercebackend.service.ProductRedisService;
 import com.nhom7.ecommercebackend.service.ProductService;
 import com.nhom7.ecommercebackend.utils.FileUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,9 +50,11 @@ import static org.springframework.http.HttpStatus.*;
 @RequestMapping("${api.prefix}/products")
 @RequiredArgsConstructor
 public class ProductController {
-
+    private final ProductRedisService productRedisService;
     private final ProductService productService;
+    private final ProductRepository productRepository;
 
+//    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     @GetMapping("")
     @Operation(summary = "Get all products with optional filters")
     public ApiResponse getAllActiveProductsFilter(
@@ -65,7 +71,7 @@ public class ProductController {
             @RequestParam(value = "size", defaultValue = "5", required = false) Integer size,
             @RequestParam(value = "sort_by", required = false, defaultValue = "id") String sortBy,
             @RequestParam(value = "sort_dir", required = false, defaultValue = "asc") String sortDir
-    ) {
+    ) throws JsonProcessingException {
         PageRequest pageRequest = null;
         Sort.Direction sortDirection = sortDir.trim().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
         if(attributeValue.get("sort_by").equalsIgnoreCase("rating")) {
@@ -76,22 +82,44 @@ public class ProductController {
         }
 
         Filter filter = new Filter(attributeValue);
-        Page<ProductResponse> productResponses = productService
-                .getAllActiveProductFilter(filter, pageRequest);
-        int pageNo = productResponses.getNumber();
-        int pageSize = productResponses.getSize();
-        int totalPages = productResponses.getTotalPages();
-        long totalElements = productResponses.getTotalElements();
-        boolean last = productResponses.isLast();
-        ProductListResponse productListResponse = ProductListResponse
-                .builder()
-                .productResponses(productResponses.getContent())
-                .pageNo(pageNo)
-                .pageSize(pageSize)
-                .totalPages(totalPages)
-                .totalElements(totalElements)
-                .last(last)
-                .build();
+        int totalPagesCached = 0;
+        long totalCachedElement = 0;
+        Page<ProductResponse> productResponses = null;
+        ProductListResponse productListResponse = null;
+        List<ProductResponse> productResponseList =
+                productRedisService.getCachedProducts(filter, pageRequest, sortBy);
+        if(productResponseList == null || productResponseList.isEmpty()) {
+            Page<ProductResponse> productResponses1 = productService.getAllActiveProductFilter(filter, pageRequest);
+            productRedisService.saveListProductsFilterToCache(productResponses1.getContent(), filter, pageRequest, sortBy);
+            productResponses = productResponses1;
+            int pageNo = productResponses.getNumber();
+            int pageSize = productResponses.getSize();
+            int totalPages =  productResponses.getTotalPages();
+            totalPagesCached = productResponses.getTotalPages();
+            totalCachedElement = productResponses.getTotalElements();
+            long totalElements = productResponses.getTotalElements();
+            boolean last = productResponses.isLast();
+            productListResponse = ProductListResponse
+                    .builder()
+                    .productResponses(productResponses.getContent())
+                    .pageNo(pageNo)
+                    .pageSize(pageSize)
+                    .totalElements(totalElements)
+                    .totalPages(totalPages)
+                    .last(last)
+                    .build();
+        }else{
+            productListResponse = ProductListResponse
+                    .builder()
+                    .productResponses(productResponseList)
+                    .pageNo(page)
+                    .pageSize(size)
+                    .totalElements(totalCachedElement)
+                    .totalPages(totalPagesCached)
+                    .last(true)
+                    .build();
+        }
+
         return ApiResponse.builder()
                 .message("Fetch product successfully!")
                 .status(HTTP_OK)
