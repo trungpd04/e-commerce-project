@@ -102,8 +102,7 @@ public class AuthenticationUtils {
     @Value("${oauth2.facebook.redirect_uri}")
     protected String FACEBOOK_REDIRECT_URI;
 
-    public AuthenticationResponse introspectToken(IntrospectRequest introspectRequest)
-            throws ParseException, JOSEException {
+    public AuthenticationResponse introspectToken(IntrospectRequest introspectRequest) throws ParseException, JOSEException {
         try {
             verifyToken(false, introspectRequest.getToken());
         } catch (TokenException e) {
@@ -336,6 +335,7 @@ public class AuthenticationUtils {
                     .build()
                     .toUriString();
         }
+
         return url;
     }
 }

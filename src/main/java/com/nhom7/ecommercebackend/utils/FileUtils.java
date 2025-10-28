@@ -1,9 +1,11 @@
 package com.nhom7.ecommercebackend.utils;
 
+import ch.qos.logback.core.util.StringUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

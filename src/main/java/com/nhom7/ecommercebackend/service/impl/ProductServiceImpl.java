@@ -149,7 +149,7 @@ public class ProductServiceImpl implements ProductService {
 
         specification = specification.and((root, query, criteriaBuilder) -> {
                return criteriaBuilder.equal(root.get("active"), true);
-        }
+    }
         ).and((root, query, criteriaBuilder) -> {
             Join<Product, SubCategory> productSubCategoryJoin = null;
             Join<Product, Category> productCategoryJoin = null;
@@ -181,7 +181,6 @@ public class ProductServiceImpl implements ProductService {
                 .quantity(productDTO.getQuantity())
                 .subcategory(subCategories)
                 .build();
-
         // Prepare to map the attributes from the DTO
         List<ProductAttributeValue> attributeValues = new ArrayList<>();
 

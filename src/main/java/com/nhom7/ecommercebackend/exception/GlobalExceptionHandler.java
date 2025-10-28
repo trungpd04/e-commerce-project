@@ -38,7 +38,6 @@ public class GlobalExceptionHandler {
 
         return error;
     }
-
     @ExceptionHandler(UnsupportedLoginException.class)
     @ResponseStatus(BAD_REQUEST)
     @ResponseBody
@@ -54,7 +53,6 @@ public class GlobalExceptionHandler {
 
         return error;
     }
-
     @ExceptionHandler(DataNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
     @ResponseBody
@@ -70,7 +68,6 @@ public class GlobalExceptionHandler {
 
         return error;
     }
-
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
@@ -86,7 +83,6 @@ public class GlobalExceptionHandler {
 
         return error;
     }
-
     @ExceptionHandler(InvalidBearerTokenException.class)
     @ResponseStatus(UNAUTHORIZED)
     @ResponseBody
@@ -118,7 +114,6 @@ public class GlobalExceptionHandler {
 
         return error;
     }
-
     @ExceptionHandler(TokenException.class)
     @ResponseStatus(UNAUTHORIZED)
     @ResponseBody

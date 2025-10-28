@@ -2,7 +2,6 @@ package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.Cart;
 import com.nhom7.ecommercebackend.response.ApiResponse;
-import com.nhom7.ecommercebackend.response.PaginationResponse;
 import com.nhom7.ecommercebackend.response.cart.CartResponse;
 import com.nhom7.ecommercebackend.service.CartService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
