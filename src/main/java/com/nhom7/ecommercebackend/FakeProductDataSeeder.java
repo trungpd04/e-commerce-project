@@ -1,10 +1,12 @@
 package com.nhom7.ecommercebackend;
 
 import com.github.javafaker.Faker;
-import com.nhom7.ecommercebackend.model.*;
+import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.Product;
+import com.nhom7.ecommercebackend.model.ProductAttribute;
+import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
-import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
 import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
@@ -16,14 +18,12 @@ import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
 import com.nhom7.ecommercebackend.service.SubCategoryService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Profile("dev") // Chỉ chạy seeder này ở môi trường 'dev'
 @RequiredArgsConstructor
 public class FakeProductDataSeeder implements CommandLineRunner {
 
@@ -41,274 +42,216 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     private final CategoryService categoryService;
     private final SubCategoryService subCategoryService;
     private final ProductAttributeService productAttributeService;
-    private final List<String> categoryName = Arrays.asList("Điện thoại", "Laptop");
-    private final List<String> subCategoryName = Arrays.asList("Iphone", "Samsung", "Lenovo", "Asus");
+    private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(FakeProductDataSeeder.class);
+
+    private final List<String> categoryNames = Arrays.asList("Điện thoại", "Laptop");
+    private final Map<String, Long> subCategoryToCategoryMap = Map.of(
+            "Iphone", 1L,
+            "Samsung", 1L,
+            "Lenovo", 2L,
+            "Asus", 2L
+    );
     private final List<String> attributes = Arrays.asList(
-            "mobile_ram",
-            "mobile_storage",
-            "mobile_cpu",
-            "mobile_screen_type",
-            "mobile_screen_size",
-            "mobile_screen_refresh_rate",
-            "mobile_battery_capacity",
-            "mobile_color",
-            "mobile_design_description",
-            "mobile_os",
-            "mobile_manufacturer",
-            "mobile_guarantee_month",
-            "laptop_ram",
-            "laptop_storage",
-            "laptop_cpu",
-            "laptop_screen_size",
-            "laptop_screen_refresh_rate",
-            "laptop_battery_capacity",
-            "laptop_color",
-            "laptop_design_description",
-            "laptop_os",
-            "laptop_manufacturer",
-            "laptop_guarantee_month",
-            "mobile_hot",
-            "laptop_hot"
+            "mobile_ram", "mobile_storage", "mobile_cpu", "mobile_screen_type", "mobile_screen_size",
+            "mobile_screen_refresh_rate", "mobile_battery_capacity", "mobile_color", "mobile_design_description",
+            "mobile_os", "mobile_manufacturer", "mobile_guarantee_month", "laptop_ram", "laptop_storage",
+            "laptop_cpu", "laptop_screen_size", "laptop_screen_refresh_rate", "laptop_battery_capacity",
+            "laptop_color", "laptop_design_description", "laptop_os", "laptop_manufacturer",
+            "laptop_guarantee_month", "mobile_hot", "laptop_hot"
     );
     private final Faker faker = new Faker();
     private final Random random = new Random();
 
-    // Set to store unique product names
-    private final Set<String> uniqueProductNames = new HashSet<>();
+    // Smartphone models
+    private final List<String> iphoneModels = Arrays.asList("iPhone 15 Pro Max", "iPhone 15", "iPhone 14", "iPhone 13", "iPhone SE");
+    private final List<String> samsungModels = Arrays.asList("Samsung Galaxy S22 Ultra", "Samsung Galaxy S21", "Samsung Galaxy Z Fold 3", "Samsung Galaxy A72");
 
-    // Categories: 1 - Smartphones, 2 - Laptops
-    private final List<Long> categories = Arrays.asList(1L, 2L);
-
-    // Subcategories for phones and laptops
-    private final List<Long> subcategoriesPhones = Arrays.asList(1L, 2L); // iPhone and Samsung
-    private final List<Long> subcategoriesLaptops = Arrays.asList(3L, 4L); // Lenovo and Asus
-
-    // Smartphone models for iPhone and Samsung
-    private final List<String> iphoneModels = Arrays.asList("iPhone 15 Pro Max", "iPhone 15", "iPhone 14", "iPhone 13", "iPhone SE", "iPhone 12 Mini", "iPhone 11 Pro", "iPhone XR", "iPhone X", "iPhone 8 Plus");
-    private final List<String> samsungModels = Arrays.asList("Samsung Galaxy S22 Ultra", "Samsung Galaxy S21", "Samsung Galaxy Z Fold 3", "Samsung Galaxy A72", "Samsung Galaxy Note 20", "Samsung Galaxy S20", "Samsung Galaxy A52", "Samsung Galaxy S10", "Samsung Galaxy Z Flip", "Samsung Galaxy A50");
-
-    // Laptop models for Lenovo and Asus
-    private final List<String> lenovoModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3", "Lenovo ThinkPad T14", "Lenovo Yoga Slim 7", "Lenovo Legion Y740", "Lenovo ThinkBook 15", "Lenovo IdeaPad Gaming 3", "Lenovo ThinkPad P1");
-    private final List<String> asusModels  = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15", "Asus ROG Strix G15", "Asus ZenBook 14", "Asus ExpertBook B9", "Asus ProArt StudioBook", "Asus VivoBook Flip 14", "Asus TUF Gaming A15");
-    private final CategoryRepository categoryRepository;
-    private final SubCategoryRepository subCategoryRepository;
-    private final ProductRepository productRepository;
-
+    // Laptop models
+    private final List<String> lenovoModels = Arrays.asList("Lenovo ThinkPad X1 Carbon", "Lenovo Legion 5 Pro", "Lenovo Yoga 9i", "Lenovo IdeaPad 3");
+    private final List<String> asusModels = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15");
 
     @Override
     public void run(String... args) throws Exception {
+        if (productRepository.count() > 0) {
+            logger.info("Data already exists. Skipping seeding.");
+            return;
+        }
+        logger.info("Start seeding data...");
+
+        // 1. Seed Categories
+        for (String categoryName : this.categoryNames) {
+            try {
+                categoryService.creatCategory(CategoryDTO.builder().name(categoryName).build());
+                logger.info("Category created: {}", categoryName);
+            } catch (Exception e) {
+                logger.warn("Category '{}' might already exist: {}", categoryName, e.getMessage());
+            }
+        }
+
+        // 2. Seed SubCategories
+        for (Map.Entry<String, Long> entry : this.subCategoryToCategoryMap.entrySet()) {
+            try {
+                String subCategoryName = entry.getKey();
+                Long categoryId = entry.getValue();
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new RuntimeException("Category not found for ID: " + categoryId));
+                SubCategory subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subCategoryName).build());
+                subCategory.setCategory(category);
+                // The relationship should be managed by the service, but if not, we save it here.
+                // This part might need adjustment based on your service implementation.
+                category.getSubCategoryList().add(subCategory);
+                categoryRepository.save(category);
+                logger.info("SubCategory '{}' created and linked to Category '{}'", subCategoryName, category.getName());
+            } catch (Exception e) {
+                logger.warn("SubCategory '{}' might already exist or failed to create: {}", entry.getKey(), e.getMessage());
+            }
+        }
+
+        // 3. Seed Attributes
+        for (String name : this.attributes) {
+            try {
+                productAttributeService.createProductAttribute(AttributeDTO.builder().name(name).active(true).build());
+                logger.info("Product Attribute created: {}", name);
+            } catch (Exception e) {
+                logger.warn("Attribute '{}' might already exist: {}", name, e.getMessage());
+            }
+        }
+
+        // 4. Seed Products
         List<String> productImages = getRandomImagesFromUploads("uploads/");
-        Collections.shuffle(productImages);
-        for(String categoryName : this.categoryName) {
-            try{
-                Category category = categoryService.creatCategory(
-                        CategoryDTO.builder()
-                                .name(categoryName)
-                                .build()
-                );
-                System.out.println("Category created: " + categoryName);
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
+        if (productImages.isEmpty()) {
+            logger.error("No images found in 'uploads/' directory. Cannot seed product images.");
+            return;
         }
-        for(String subcategoryName : this.subCategoryName) {
-            try{
-                if(subcategoryName == "Lenovo" || subcategoryName == "Asus"){
-                    Category category = categoryRepository.findById(2L).get();
-                    List<SubCategory> subCategories = new ArrayList<>();
-                    SubCategory subCategory = null;
-                    try{
-                        subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subcategoryName).build());
-                        subCategory.setCategory(category);
-                    }catch (Exception e) {
-                        System.out.println("Subcategory created: " + subcategoryName);
-                    }
-                    subCategories.add(subCategory);
-                    category.setSubCategoryList(subCategories);
-                    categoryRepository.save(category);
-                }else{
-                    Category category = categoryRepository.findById(1L).get();
-                    List<SubCategory> subCategories = new ArrayList<>();
-                    SubCategory subCategory = null;
-                    try{
-                        subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subcategoryName).build());
-                        subCategory.setCategory(category);
-                    }catch (Exception e) {
-                        System.out.println("Subcategory created: " + subcategoryName);
-                    }
-                    subCategories.add(subCategory);
-                    category.setSubCategoryList(subCategories);
-                    categoryRepository.save(category);
-                }
-                System.out.println("Category created: " + subcategoryName);
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        for(String name : this.attributes) {
-            try{
-                ProductAttribute productAttribute = productAttributeService
-                        .createProductAttribute(AttributeDTO.builder()
-                                .name(name)
-                                .active(true)
-                                .build());
-                System.out.println("Product Attribute created: " + name);
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-        }
-        for (int i = 0; i < 2000; i++) {
-            ProductDTO productDTO = generateUniqueProduct();
+
+        logger.info("Start seeding 200,000 products... This will take a while.");
+        for (int i = 0; i < 200_000; i++) {
+            ProductDTO productDTO = generateUniqueProduct(i);
             if (productDTO != null) {
                 try {
                     Product product = productService.createProduct(productDTO);
                     Collections.shuffle(productImages);
-                    for(int a = 0; a < 5; a++) {
+                    int imageCount = Math.min(5, productImages.size());
+                    for (int a = 0; a < imageCount; a++) {
                         productService.createProductImage(
                                 product.getId(),
                                 ProductImageDTO.builder().imageUrl(productImages.get(a)).build()
                         );
                     }
-                    System.out.println("Product " + (i + 1) + " created: " + productDTO.getName());
+                    if ((i + 1) % 5000 == 0) { // Log progress every 5000 products
+                        logger.info("Created {} / 200,000 products.", i + 1);
+                    }
                 } catch (Exception e) {
-
-                    System.out.println("Failed to create product " + (i + 1) + ": " + e.getMessage());
+                    logger.error("Failed to create product {}: {}", (i + 1), e.getMessage());
                 }
             }
         }
+        logger.info("Finished seeding 200,000 products.");
     }
 
     private List<String> getRandomImagesFromUploads(String dir) {
         try (Stream<Path> stream = Files.list(Paths.get(dir))) {
-            List<String> files = stream
+            return stream
                     .filter(file -> !Files.isDirectory(file))
                     .map(Path::getFileName)
                     .map(Path::toString)
                     .filter(name -> name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg") || name.endsWith(".webp"))
                     .collect(Collectors.toList());
-
-            if (files.isEmpty()) {
-                throw new RuntimeException("No image files found in " + dir);
-            }
-
-            // Lấy ngẫu nhiên n file ảnh
-            Collections.shuffle(files);// Trộn danh sách file
-            return new ArrayList<>(files);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to list files in " + dir, e);
+            logger.error("Failed to list files in directory '{}'. Please ensure it exists.", dir, e);
+            return Collections.emptyList();
         }
     }
 
-    private ProductDTO generateUniqueProduct() {
+    private ProductDTO generateUniqueProduct(int sequence) {
         Long categoryId;
         List<Long> subcategoryIds;
-        String productName;
+        String baseProductName;
 
         if (random.nextBoolean()) {
             // Smartphone category
             categoryId = 1L;
             subcategoryIds = random.nextBoolean() ? Collections.singletonList(1L) : Collections.singletonList(2L);
-            productName = getRandomUniqueModel(subcategoryIds.get(0) == 1L ? iphoneModels : samsungModels);
+            baseProductName = getRandomModel(subcategoryIds.get(0) == 1L ? iphoneModels : samsungModels);
         } else {
             // Laptop category
             categoryId = 2L;
             subcategoryIds = random.nextBoolean() ? Collections.singletonList(3L) : Collections.singletonList(4L);
-            productName = getRandomUniqueModel(subcategoryIds.get(0) == 3L ? lenovoModels : asusModels);
+            baseProductName = getRandomModel(subcategoryIds.get(0) == 3L ? lenovoModels : asusModels);
         }
 
-        if (productName == null) return null;
+        // Append a unique suffix to ensure the name is unique
+        String productName = baseProductName + " #" + sequence + " " + UUID.randomUUID().toString().substring(0, 4);
 
-        // Generate attributes based on category
         List<ProductAttributeValueDTO> attributeValues = new ArrayList<>();
         if (categoryId == 1L) {
             // Smartphone attributes
-            attributeValues.add(createAttributeValue("mobile_ram", String.valueOf(random.nextInt(8))));
-            attributeValues.add(createAttributeValue("mobile_storage", String.valueOf(random.nextInt(256))));
+            attributeValues.add(createAttributeValue("mobile_ram", String.valueOf(random.nextInt(8) + 4) + "GB"));
+            attributeValues.add(createAttributeValue("mobile_storage", String.valueOf(128 * (random.nextInt(4) + 1)) + "GB"));
             attributeValues.add(createAttributeValue("mobile_screen_type", generateRandomScreenType()));
             attributeValues.add(createAttributeValue("mobile_cpu", generateRandomCpu()));
-            attributeValues.add(createAttributeValue("mobile_screen_size", String.valueOf(generateRandomScreenSize())));
+            attributeValues.add(createAttributeValue("mobile_screen_size", String.valueOf(generateRandomScreenSize(5.5, 6.7))));
             attributeValues.add(createAttributeValue("mobile_screen_refresh_rate", String.valueOf(generateRandomScreenRefreshRate())));
-            attributeValues.add(createAttributeValue("mobile_battery_capacity", String.valueOf(random.nextInt(4000, 5000))));
+            attributeValues.add(createAttributeValue("mobile_battery_capacity", String.valueOf(random.nextInt(1000) + 4000)));
             attributeValues.add(createAttributeValue("mobile_color", faker.color().name()));
-            attributeValues.add(createAttributeValue("mobile_design_description", faker.lorem().sentence()));
-            attributeValues.add(createAttributeValue("mobile_os", generateRandomOs()));
-            attributeValues.add(createAttributeValue("mobile_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("mobile_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
+            attributeValues.add(createAttributeValue("mobile_os", generateRandomOs(true)));
         } else {
             // Laptop attributes
-            attributeValues.add(createAttributeValue("laptop_ram", String.valueOf(random.nextInt(16))));
-            attributeValues.add(createAttributeValue("laptop_storage", String.valueOf(random.nextInt(512))));
-            attributeValues.add(createAttributeValue("laptop_cpu", String.valueOf(generateRandomCpu())));
-            attributeValues.add(createAttributeValue("laptop_screen_size", String.valueOf(generateRandomScreenSize())));
+            attributeValues.add(createAttributeValue("laptop_ram", String.valueOf(8 * (random.nextInt(4) + 1)) + "GB"));
+            attributeValues.add(createAttributeValue("laptop_storage", String.valueOf(256 * (random.nextInt(4) + 1)) + "GB SSD"));
+            attributeValues.add(createAttributeValue("laptop_cpu", generateRandomCpu()));
+            attributeValues.add(createAttributeValue("laptop_screen_size", String.valueOf(generateRandomScreenSize(13.3, 16.0))));
             attributeValues.add(createAttributeValue("laptop_screen_refresh_rate", String.valueOf(generateRandomScreenRefreshRate())));
-            attributeValues.add(createAttributeValue("laptop_battery_capacity", String.valueOf(random.nextInt(5000, 8000))));
+            attributeValues.add(createAttributeValue("laptop_battery_capacity", String.valueOf(random.nextInt(3000) + 5000)));
             attributeValues.add(createAttributeValue("laptop_color", faker.color().name()));
-            attributeValues.add(createAttributeValue("laptop_design_description", faker.lorem().sentence()));
-            attributeValues.add(createAttributeValue("laptop_os", generateRandomOs()));
-            attributeValues.add(createAttributeValue("laptop_manufacturer", faker.company().name()));
-            attributeValues.add(createAttributeValue("laptop_guarantee_month", String.valueOf(random.nextInt(12) + 1)));
+            attributeValues.add(createAttributeValue("laptop_os", generateRandomOs(false)));
         }
 
-        // Build the ProductDTO
         return ProductDTO.builder()
                 .name(productName)
-                .description("Sản phẩm này được bán tại CyberTechShop")
-                .price(BigDecimal.valueOf(Float.parseFloat(faker.commerce().price(1000000, 4000000))))
-                .quantity(random.nextLong(10 - 1 + 1) + 1)
+                .description("Sản phẩm này được bán tại CyberTechShop. " + faker.lorem().paragraph())
+                .price(BigDecimal.valueOf(faker.number().randomDouble(0, 1000000, 40000000)))
+                .quantity(random.nextLong(100))
                 .thumbnail(null)
-                .isHot(getRandomBoolean())
-                .subcategory(subcategoryIds) // Associate with the selected subcategories
+                .isHot(random.nextBoolean())
+                .subcategory(subcategoryIds)
                 .attributeValues(attributeValues)
                 .build();
     }
 
     private ProductAttributeValueDTO createAttributeValue(String attributeName, String value) {
-        return ProductAttributeValueDTO.builder()
-                .attributeName(attributeName)
-                .value(value)
-                .build();
+        return ProductAttributeValueDTO.builder().attributeName(attributeName).value(value).build();
     }
 
-    // Helper methods
-    private String getRandomUniqueModel(List<String> models) {
-        List<String> availableModels = new ArrayList<>(models);
-
-        Collections.shuffle(availableModels);
-
-        for (String model : availableModels) {
-            if (!uniqueProductNames.contains(model)) {
-                uniqueProductNames.add(model);
-                return model;
-            }
-        }
-        return null;
+    private String getRandomModel(List<String> models) {
+        return models.get(random.nextInt(models.size()));
     }
 
     private String generateRandomCpu() {
-        List<String> cpus = Arrays.asList("Intel Core i7", "AMD Ryzen 7", "Apple M1", "Intel Core i5");
+        List<String> cpus = Arrays.asList("Intel Core i9", "Intel Core i7", "AMD Ryzen 9", "AMD Ryzen 7", "Apple M2", "Apple M1");
         return cpus.get(random.nextInt(cpus.size()));
     }
 
     private String generateRandomScreenType() {
-        List<String> screenTypes = Arrays.asList("IPS", "OLED");
-        return screenTypes.get(random.nextInt(screenTypes.size()));
+        return random.nextBoolean() ? "OLED" : "IPS LCD";
     }
 
     private int generateRandomScreenRefreshRate() {
-        List<Integer> refreshRates = Arrays.asList(60, 90, 120);
+        List<Integer> refreshRates = Arrays.asList(60, 90, 120, 144);
         return refreshRates.get(random.nextInt(refreshRates.size()));
     }
 
-    private float generateRandomScreenSize() {
-        return (float) (Math.round((5.0 + random.nextFloat() * 5.0) * 10.0) / 10.0); // Random size between 5.0 and 10.0 inches
+    private float generateRandomScreenSize(double min, double max) {
+        return (float) (Math.round((min + random.nextDouble() * (max - min)) * 10.0) / 10.0);
     }
 
-    private String generateRandomOs() {
-        List<String> operatingSystems = Arrays.asList("IOS", "Android", "Windows 10", "Windows 11");
-        return operatingSystems.get(random.nextInt(operatingSystems.size()));
+    private String generateRandomOs(boolean isMobile) {
+        if (isMobile) {
+            return random.nextBoolean() ? "iOS" : "Android";
+        }
+        return random.nextBoolean() ? "Windows 11" : "macOS";
     }
-    public boolean getRandomBoolean() {
-        return Math.random() < 0.5;
-    }
-
 }
