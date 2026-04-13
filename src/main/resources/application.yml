@@ -1,0 +1,73 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    port: 587
+    properties:
+      smtp:
+        auth: true
+        starttls :
+          enable : true
+          required : true
+  output:
+    ansi:
+      enabled: always
+  datasource:
+    url: jdbc:mysql://${DATABASE_HOST:localhost}:${DATABASE_PORT:3306}/${DATABASE_NAME:ecommerce}?createDatabaseIfNotExist=true
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+rsa:
+  rsa-private-key: classpath:certs/private.pem
+  rsa-public-key: classpath:certs/public.pem
+jwt:
+  expiration_time: 3600
+  refresh_duration: 7200
+oauth2:
+  google:
+    client_id: ${GOOGLE_CLIENT_ID}
+    client_secret: ${GOOGLE_CLIENT_SECRET}
+    grant_type : authorization_code
+    redirect_uri : http://localhost:3000/auth/google/callback
+  facebook:
+    client_id: ${FACEBOOK_CLIENT_ID}
+    client_secret: ${FACEBOOK_CLIENT_SECRET}
+    grant_type: code
+    redirect_uri: http://localhost:3000/auth/facebook/callback
+    auth_uri: https://www.facebook.com/v21.0/dialog/oauth
+    user-info-uri: https://graph.facebook.com/me?fields=id,name,email,picture.type(large)
+    scope:
+      - email
+      - public_profile
+
+payment:
+  vn_pay:
+    vnp_version: 2.1.0
+    vnp_command: pay
+    vnp_tmn_code: ${VNPAY_TMN_CODE}
+    vnp_hash_secret: ${VNPAY_HASH_SECRET}
+    vnp_url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    vnp_curr_code: VND
+    vnp_order_type: other
+    vnp_locale: vn
+    vnp_return_url: http://localhost:3000/orders/checkout/vn-pay/callback
+api:
+  prefix: "/api/v1"
+app:
+  cors:
+    allowedOrigins: http://localhost:3000
+springdoc:
+  swagger-ui:
+    path: ${api.prefix}/swagger-ui.html
+  api-docs:
+    path: ${api.prefix}/api-docs
+  show-actuator: true
