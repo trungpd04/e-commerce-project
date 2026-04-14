@@ -43,7 +43,7 @@ public class Product extends BaseEntity {
     @ManyToMany
     private List<SubCategory> subcategory;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductAttributeValue> attributeValues;
 
     @OneToMany(mappedBy = "product",
@@ -53,11 +53,6 @@ public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "id.product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings;
-
-    @PrePersist
-    private void setActive() {
-        setActive(true);
-    }
 
 }
 

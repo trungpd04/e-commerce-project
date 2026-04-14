@@ -15,6 +15,8 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict("products")
     public Product createProduct(ProductDTO productDTO) throws DataNotFoundException {
 
         if (!productDTO.getName().isBlank() && productRepository.existsByName(productDTO.getName())) {
@@ -48,6 +51,8 @@ public class ProductServiceImpl implements ProductService {
 
         return productRepository.save(newProduct);
     }
+
+    @Cacheable("products")
     @Override
     public Product getProductById(Long productId) throws DataNotFoundException {
         return productRepository.findById(productId)
@@ -56,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict("products")
     public void deleteProduct(Long productId) throws DataNotFoundException {
         Product product = productRepository.findProductById(productId)
                         .orElseThrow(() -> new DataNotFoundException("Product not found for ID: " + productId));
@@ -75,6 +81,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict("products")
     public Product updateProduct(Long productId, ProductDTO productDTO) {
         Product existingProduct = productRepository.findProductById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
@@ -135,6 +142,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable("products")
     public Page<ProductResponse> getAllProductFilter(Filter filter, PageRequest pageRequest) {
         Page<Product> productPage;
         Specification<Product> specification = new FilterSpecification<>(filter);
@@ -143,6 +151,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable("products")
     public Page<ProductResponse> getAllActiveProductFilter(Filter filter, PageRequest pageRequest) {
         Page<Product> productPage;
         Specification<Product> specification = new FilterSpecification<>(filter);
@@ -150,13 +159,14 @@ public class ProductServiceImpl implements ProductService {
         specification = specification.and((root, query, criteriaBuilder) -> {
                return criteriaBuilder.equal(root.get("active"), true);
     }
-        ).and((root, query, criteriaBuilder) -> {
-            Join<Product, SubCategory> productSubCategoryJoin = null;
-            Join<Product, Category> productCategoryJoin = null;
-            productSubCategoryJoin = root.join("subcategory", JoinType.LEFT);
-            productCategoryJoin = productSubCategoryJoin.join("category", JoinType.LEFT);
-            return criteriaBuilder.equal(productCategoryJoin.get("active"), true);
-        });
+        );
+//                .and((root, query, criteriaBuilder) -> {
+//            Join<Product, SubCategory> productSubCategoryJoin = null;
+//            Join<Product, Category> productCategoryJoin = null;
+//            productSubCategoryJoin = root.join("subcategory", JoinType.LEFT);
+//            productCategoryJoin = productSubCategoryJoin.join("category", JoinType.LEFT);
+//            return criteriaBuilder.equal(productCategoryJoin.get("active"), true);
+//        });
         productPage = productRepository.findAll(specification, pageRequest);
         return productPage.map(ProductResponse::fromProduct);
     }
@@ -177,6 +187,7 @@ public class ProductServiceImpl implements ProductService {
                 .description(productDTO.getDescription())
                 .thumbnail(productDTO.getThumbnail())
                 .price(productDTO.getPrice())
+                .active(true)
                 .isHot(productDTO.isHot())
                 .quantity(productDTO.getQuantity())
                 .subcategory(subCategories)

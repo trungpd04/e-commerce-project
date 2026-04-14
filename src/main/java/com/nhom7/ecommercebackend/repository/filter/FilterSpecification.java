@@ -67,15 +67,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
                 );
                 predicates.add(subcategoryPredicate);
             }
-            if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
-                if (productSubCategoryJoin == null) {
-                    productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-                }
-                Predicate subcategoryPredicate = criteriaBuilder.equal(
-                        productSubCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
-                );
-                predicates.add(subcategoryPredicate);
-            }
 
             if (attributeValue.getKey().equals("category_id") && !attributeValue.getValue().contains("-")) {
                 if (productSubCategoryJoin == null) {
