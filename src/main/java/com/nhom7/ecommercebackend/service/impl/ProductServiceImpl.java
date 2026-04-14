@@ -11,8 +11,6 @@ import com.nhom7.ecommercebackend.request.product.ProductDTO;
 import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
 import com.nhom7.ecommercebackend.response.product.ProductResponse;
 import com.nhom7.ecommercebackend.service.ProductService;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,19 +23,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final SubCategoryRepository subCategoryRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductAttributeValueRepository productAttributeValueRepository;
     private final ProductAttributeRepository productAttributeRepository;
-    private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final CategoryRepository categoryRepository;
 
     @Override
     @Transactional
@@ -85,17 +81,11 @@ public class ProductServiceImpl implements ProductService {
     public Product updateProduct(Long productId, ProductDTO productDTO) {
         Product existingProduct = productRepository.findProductById(productId)
                 .orElseThrow(() -> new DataNotFoundException("Product does not exist!"));
-        List<SubCategory> subCategories = new ArrayList<>();
-        productDTO.getSubcategory().forEach(subCategoryId -> {
-            SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
-                    .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
-            subCategories.add(subCategory);
-        });
+
         existingProduct.setName(productDTO.getName());
         existingProduct.setPrice(productDTO.getPrice());
         existingProduct.setThumbnail(productDTO.getThumbnail());
         existingProduct.setDescription(productDTO.getDescription());
-        existingProduct.setSubcategory(subCategories);
         existingProduct.setQuantity(productDTO.getQuantity());
         existingProduct.setActive(productDTO.isActive());
         existingProduct.setHot(productDTO.isHot());
@@ -171,14 +161,11 @@ public class ProductServiceImpl implements ProductService {
         return productPage.map(ProductResponse::fromProduct);
     }
 
-    private Product buildProduct(ProductDTO productDTO, Long... productId) {
-        // Retrieve and populate subcategories
-        List<SubCategory> subCategories = new ArrayList<>();
-        productDTO.getSubcategory().forEach(subCategoryId -> {
-            SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
-                    .orElseThrow(() -> new DataNotFoundException("Sub category not found!"));
-            subCategories.add(subCategory);
-        });
+    private Product buildProduct(ProductDTO productDTO) {
+
+        Category existedCategory =
+                categoryRepository.findById(productDTO.getCategoryId())
+                        .orElseThrow(() -> new DataNotFoundException("Category does not exist!"));
 
 
         // Build and return the Product entity
@@ -188,9 +175,9 @@ public class ProductServiceImpl implements ProductService {
                 .thumbnail(productDTO.getThumbnail())
                 .price(productDTO.getPrice())
                 .active(true)
+                .categories(List.of(existedCategory))
                 .isHot(productDTO.isHot())
                 .quantity(productDTO.getQuantity())
-                .subcategory(subCategories)
                 .build();
         // Prepare to map the attributes from the DTO
         List<ProductAttributeValue> attributeValues = new ArrayList<>();

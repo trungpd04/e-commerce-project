@@ -2,8 +2,8 @@ package com.nhom7.ecommercebackend.controller;
 
 import com.nhom7.ecommercebackend.model.Category;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
-import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.response.ApiResponse;
+import com.nhom7.ecommercebackend.response.category.CategoryTreeResponse;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +16,16 @@ import static java.net.HttpURLConnection.HTTP_OK;
 @RequestMapping("${api.prefix}/categories")
 @RequiredArgsConstructor
 public class CategoryController {
+
     private final CategoryService categoryService;
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    public ApiResponse createCategory(@RequestBody CategoryDTO categoryDTO) throws Exception {
+    public ApiResponse createCategory(@RequestBody CategoryDTO categoryDTO) {
         Category newCategory = categoryService.creatCategory(categoryDTO);
         return ApiResponse.builder()
-                .data(newCategory)
+                .data(CategoryTreeResponse.fromCategory(newCategory))
                 .message("Create Category successfully!")
                 .status(HTTP_OK)
                 .build();
@@ -34,19 +36,61 @@ public class CategoryController {
         Category category = categoryService.getCategoryById(categoryId);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(category)
+                .data(CategoryTreeResponse.fromCategory(category))
                 .message("Get category by Id successfully!")
                 .build();
     }
+
     @GetMapping("")
     public ApiResponse getAllActiveCategory() {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get all category successfully!")
-                .data(categoryService.getAllCategory())
+                .data(
+                        categoryService
+                                .getAllCategory()
+                                .stream()
+                                .filter(Category::isActive)
+                                .map(CategoryTreeResponse::fromCategory)
+                                .toList()
+                )
                 .build();
 
     }
+
+    @GetMapping("/tree")
+    public ApiResponse getCategoryTree() {
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get all category successfully!")
+                .data(
+                        categoryService
+                                .getCategoryTree()
+                                .stream()
+                                .filter(Category::isActive)
+                                .map(CategoryTreeResponse::fromCategory)
+                                .toList()
+                )
+                .build();
+
+    }
+
+    @GetMapping("/{categoryId}/children")
+    public ApiResponse getCategoryChildrenByParentId(@PathVariable Long categoryId) {
+        return ApiResponse.builder()
+                .status(HTTP_OK)
+                .message("Get all category successfully!")
+                .data(
+                        categoryService
+                                .getAllCategoryChildren(categoryId)
+                                .stream()
+                                .filter(Category::isActive)
+                                .map(CategoryTreeResponse::fromCategory)
+                                .toList()
+                )
+                .build();
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin")
     @SecurityRequirement(name = "bearer-key")
@@ -54,9 +98,16 @@ public class CategoryController {
         return ApiResponse.builder()
                 .status(HTTP_OK)
                 .message("Get all category by admin successfully!")
-                .data(categoryService.getAllCategoryByAdmin())
+                .data(
+                        categoryService
+                        .getAllCategoryByAdmin().stream()
+                        .filter(Category::isActive)
+                        .map(CategoryTreeResponse::fromCategory)
+                        .toList()
+                )
                 .build();
     }
+
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{categoryId}")
     @SecurityRequirement(name = "bearer-key")
@@ -67,6 +118,7 @@ public class CategoryController {
                 .message("Deactivate category successfully!")
                 .build();
     }
+
     @PutMapping("/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
@@ -77,22 +129,8 @@ public class CategoryController {
         Category category = categoryService.updateCategory(categoryId, categoryDTO);
         return ApiResponse.builder()
                 .status(HTTP_OK)
-                .data(category)
+                .data(CategoryTreeResponse.fromCategory(category))
                 .message("Update category successfully!")
-                .build();
-    }
-    @PostMapping("/add_subcategory/{categoryId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @SecurityRequirement(name = "bearer-key")
-    public ApiResponse addSubcategory(
-            @PathVariable("categoryId") Long categoryId,
-            @RequestBody SubCategoryDTO subCategoryDTO
-    ) {
-        Category category = categoryService.addSubcategory(categoryId, subCategoryDTO);
-        return ApiResponse.builder()
-                .status(HTTP_OK)
-                .data(category)
-                .message("Add subcategory successfully!")
                 .build();
     }
 }

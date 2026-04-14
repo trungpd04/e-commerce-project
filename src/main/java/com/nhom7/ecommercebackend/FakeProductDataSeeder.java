@@ -3,12 +3,9 @@ package com.nhom7.ecommercebackend;
 import com.github.javafaker.Faker;
 import com.nhom7.ecommercebackend.model.Category;
 import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.ProductAttribute;
-import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
 import com.nhom7.ecommercebackend.repository.ProductRepository;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
-import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.request.product.AttributeDTO;
 import com.nhom7.ecommercebackend.request.product.ProductAttributeValueDTO;
 import com.nhom7.ecommercebackend.request.product.ProductDTO;
@@ -16,7 +13,6 @@ import com.nhom7.ecommercebackend.request.product.ProductImageDTO;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import com.nhom7.ecommercebackend.service.ProductAttributeService;
 import com.nhom7.ecommercebackend.service.ProductService;
-import com.nhom7.ecommercebackend.service.SubCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,20 +36,19 @@ public class FakeProductDataSeeder implements CommandLineRunner {
 
     private final ProductService productService;
     private final CategoryService categoryService;
-    private final SubCategoryService subCategoryService;
     private final ProductAttributeService productAttributeService;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(FakeProductDataSeeder.class);
 
-    private final List<String> categoryNames = Arrays.asList("Điện thoại", "Laptop");
-    private final Map<String, Long> subCategoryToCategoryMap = Map.of(
-            "Iphone", 1L,
-            "Samsung", 1L,
-            "Lenovo", 2L,
-            "Asus", 2L
+    private static final List<String> ROOT_CATEGORY_NAMES = Arrays.asList("Điện thoại", "Laptop");
+
+    private static final Map<String, List<String>> CHILDREN_BY_PARENT_NAME = Map.of(
+            "Điện thoại", Arrays.asList("Iphone", "Samsung"),
+            "Laptop", Arrays.asList("Lenovo", "Asus")
     );
+
     private final List<String> attributes = Arrays.asList(
             "mobile_ram", "mobile_storage", "mobile_cpu", "mobile_screen_type", "mobile_screen_size",
             "mobile_screen_refresh_rate", "mobile_battery_capacity", "mobile_color", "mobile_design_description",
@@ -74,41 +69,16 @@ public class FakeProductDataSeeder implements CommandLineRunner {
     private final List<String> asusModels = Arrays.asList("Asus ROG Zephyrus G14", "Asus ZenBook Pro Duo", "Asus VivoBook S15", "Asus TUF Dash F15");
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         if (productRepository.count() > 0) {
             logger.info("Data already exists. Skipping seeding.");
             return;
         }
         logger.info("Start seeding data...");
 
-        // 1. Seed Categories
-        for (String categoryName : this.categoryNames) {
-            try {
-                categoryService.creatCategory(CategoryDTO.builder().name(categoryName).build());
-                logger.info("Category created: {}", categoryName);
-            } catch (Exception e) {
-                logger.warn("Category '{}' might already exist: {}", categoryName, e.getMessage());
-            }
-        }
+        seedCategoryTree();
 
-        // 2. Seed SubCategories
-        for (Map.Entry<String, Long> entry : this.subCategoryToCategoryMap.entrySet()) {
-            try {
-                String subCategoryName = entry.getKey();
-                Long categoryId = entry.getValue();
-                Category category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new RuntimeException("Category not found for ID: " + categoryId));
-                SubCategory subCategory = subCategoryService.createSubCategory(SubCategoryDTO.builder().subCategoryName(subCategoryName).build());
-                subCategory.setCategory(category);
-                // The relationship should be managed by the service, but if not, we save it here.
-                // This part might need adjustment based on your service implementation.
-                category.getSubCategoryList().add(subCategory);
-                categoryRepository.save(category);
-                logger.info("SubCategory '{}' created and linked to Category '{}'", subCategoryName, category.getName());
-            } catch (Exception e) {
-                logger.warn("SubCategory '{}' might already exist or failed to create: {}", entry.getKey(), e.getMessage());
-            }
-        }
+        Map<String, Long> categoryNameToIdMap = buildCategoryNameToIdMap();
 
         // 3. Seed Attributes
         for (String name : this.attributes) {
@@ -128,8 +98,8 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         }
 
         logger.info("Start seeding 200,000 products... This will take a while.");
-        for (int i = 0; i < 200_000; i++) {
-            ProductDTO productDTO = generateUniqueProduct(i);
+        for (int i = 0; i < 100; i++) {
+            ProductDTO productDTO = generateUniqueProduct(i, categoryNameToIdMap);
             if (productDTO != null) {
                 try {
                     Product product = productService.createProduct(productDTO);
@@ -152,6 +122,59 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         logger.info("Finished seeding 200,000 products.");
     }
 
+    /**
+     * Tạo cây category qua {@link CategoryService#creatCategory(CategoryDTO)}:
+     * trước các root (parentId = null), sau các node con theo {@link #CHILDREN_BY_PARENT_NAME}.
+     */
+    private void seedCategoryTree() {
+        for (String name : ROOT_CATEGORY_NAMES) {
+            ensureCategoryRoot(name);
+        }
+
+        Map<String, Long> nameToId = buildCategoryNameToIdMap();
+
+        for (Map.Entry<String, List<String>> entry : CHILDREN_BY_PARENT_NAME.entrySet()) {
+            String parentName = entry.getKey();
+            Long parentId = nameToId.get(parentName);
+            if (parentId == null) {
+                logger.warn("Không tìm thấy category root '{}', bỏ qua các con.", parentName);
+                continue;
+            }
+            for (String childName : entry.getValue()) {
+                ensureCategoryChild(childName, parentId);
+            }
+        }
+    }
+
+    private void ensureCategoryRoot(String name) {
+        try {
+            if (categoryRepository.findAll().stream().noneMatch(c -> c.getName().equals(name))) {
+                categoryService.creatCategory(
+                        CategoryDTO.builder().name(name).active(true).build());
+                logger.info("Category root created: {}", name);
+            }
+        } catch (Exception e) {
+            logger.warn("Category root '{}' có thể đã tồn tại: {}", name, e.getMessage());
+        }
+    }
+
+    private void ensureCategoryChild(String name, Long parentId) {
+        try {
+            if (categoryRepository.findAll().stream().noneMatch(c -> c.getName().equals(name))) {
+                categoryService.creatCategory(
+                        CategoryDTO.builder().name(name).active(true).parentId(parentId).build());
+                logger.info("Category con created: {} (parentId={})", name, parentId);
+            }
+        } catch (Exception e) {
+            logger.warn("Category con '{}' có thể đã tồn tại: {}", name, e.getMessage());
+        }
+    }
+
+    private Map<String, Long> buildCategoryNameToIdMap() {
+        return categoryRepository.findAll().stream()
+                .collect(Collectors.toMap(Category::getName, Category::getId));
+    }
+
     private List<String> getRandomImagesFromUploads(String dir) {
         try (Stream<Path> stream = Files.list(Paths.get(dir))) {
             return stream
@@ -166,28 +189,35 @@ public class FakeProductDataSeeder implements CommandLineRunner {
         }
     }
 
-    private ProductDTO generateUniqueProduct(int sequence) {
+    private ProductDTO generateUniqueProduct(int sequence, Map<String, Long> categoryNameToIdMap) {
         Long categoryId;
-        List<Long> subcategoryIds;
         String baseProductName;
+        boolean isSmartphone;
 
         if (random.nextBoolean()) {
             // Smartphone category
-            categoryId = 1L;
-            subcategoryIds = random.nextBoolean() ? Collections.singletonList(1L) : Collections.singletonList(2L);
-            baseProductName = getRandomModel(subcategoryIds.get(0) == 1L ? iphoneModels : samsungModels);
+            isSmartphone = true;
+            boolean isIphone = random.nextBoolean();
+            categoryId = categoryNameToIdMap.get(isIphone ? "Iphone" : "Samsung");
+            baseProductName = getRandomModel(isIphone ? iphoneModels : samsungModels);
         } else {
             // Laptop category
-            categoryId = 2L;
-            subcategoryIds = random.nextBoolean() ? Collections.singletonList(3L) : Collections.singletonList(4L);
-            baseProductName = getRandomModel(subcategoryIds.get(0) == 3L ? lenovoModels : asusModels);
+            isSmartphone = false;
+            boolean isLenovo = random.nextBoolean();
+            categoryId = categoryNameToIdMap.get(isLenovo ? "Lenovo" : "Asus");
+            baseProductName = getRandomModel(isLenovo ? lenovoModels : asusModels);
+        }
+
+        // Fallback in case category IDs are not found
+        if (categoryId == null) {
+            categoryId = categoryNameToIdMap.values().stream().findFirst().orElse(1L);
         }
 
         // Append a unique suffix to ensure the name is unique
         String productName = baseProductName + " #" + sequence + " " + UUID.randomUUID().toString().substring(0, 4);
 
         List<ProductAttributeValueDTO> attributeValues = new ArrayList<>();
-        if (categoryId == 1L) {
+        if (isSmartphone) {
             // Smartphone attributes
             attributeValues.add(createAttributeValue("mobile_ram", String.valueOf(random.nextInt(8) + 4) + "GB"));
             attributeValues.add(createAttributeValue("mobile_storage", String.valueOf(128 * (random.nextInt(4) + 1)) + "GB"));
@@ -217,8 +247,9 @@ public class FakeProductDataSeeder implements CommandLineRunner {
                 .quantity(random.nextLong(100))
                 .thumbnail(null)
                 .isHot(random.nextBoolean())
-                .subcategory(subcategoryIds)
+                .categoryId(categoryId)
                 .attributeValues(attributeValues)
+                .active(true)
                 .build();
     }
 

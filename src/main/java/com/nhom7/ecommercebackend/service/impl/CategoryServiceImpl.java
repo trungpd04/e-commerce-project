@@ -1,20 +1,16 @@
 package com.nhom7.ecommercebackend.service.impl;
 
+import com.nhom7.ecommercebackend.exception.BusinessException;
 import com.nhom7.ecommercebackend.exception.DataNotFoundException;
 import com.nhom7.ecommercebackend.model.Category;
-import com.nhom7.ecommercebackend.model.SubCategory;
 import com.nhom7.ecommercebackend.repository.CategoryRepository;
-import com.nhom7.ecommercebackend.repository.SubCategoryRepository;
 import com.nhom7.ecommercebackend.request.category.CategoryDTO;
-import com.nhom7.ecommercebackend.request.category.SubCategoryDTO;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,20 +18,25 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final SubCategoryRepository subCategoryRepository;
 
     @Override
     @Transactional
     public Category creatCategory(CategoryDTO categoryDTO) throws DataNotFoundException {
-        if(!categoryDTO.getName().isBlank() && categoryRepository.existsByName(categoryDTO.getName())) {
-            throw new DataIntegrityViolationException("Category name has already exist!");
+        Category parent = null;
+        if (categoryDTO.getParentId() != null) {
+            parent = categoryRepository.findById(categoryDTO.getParentId())
+                    .orElseThrow(() -> new DataNotFoundException("Parent category not found"));
         }
+
         Category newCategory = Category.builder()
                 .name(categoryDTO.getName())
                 .active(categoryDTO.isActive())
+                .parent(parent)
+                .childrenCategories(null)
                 .build();
-        newCategory.setSubCategoryList(new ArrayList<>());
+
         categoryRepository.save(newCategory);
+
         return newCategory;
     }
 
@@ -53,6 +54,21 @@ public class CategoryServiceImpl implements CategoryService {
     public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new DataNotFoundException("Category does not exist!"));
+        if(categoryDTO.getParentId() != null) {
+            if (categoryDTO.getParentId().equals(categoryId)) {
+                throw new BusinessException("Category cannot be its own parent");
+            }
+
+            Category parent = categoryRepository.findById(categoryDTO.getParentId())
+                    .orElseThrow(() -> new DataNotFoundException("Parent category not found"));
+            if (wouldCreateCycle(parent, categoryId)) {
+                throw new BusinessException("Circular category reference detected");
+            }
+            category.setParent(parent);
+        } else {
+            category.setParent(null);
+        }
+
         category.setName(categoryDTO.getName());
         category.setActive(categoryDTO.isActive());
         return categoryRepository.save(category);
@@ -76,16 +92,23 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category addSubcategory(Long categoryId, SubCategoryDTO subCategoryDTO) {
-        SubCategory existSubcategory = subCategoryRepository.findByName(subCategoryDTO.getSubCategoryName())
-                .orElseThrow(() -> new DataNotFoundException("Subcategory does not exist!"));
-        Category category = getCategoryById(categoryId);
-        Category existingCategory = categoryRepository.findBySubCategoryListContaining(existSubcategory);
-        if(existingCategory != null) {
-            throw new DataIntegrityViolationException("Subcategory has already been added!");
+    public List<Category> getCategoryTree() {
+        return categoryRepository.findAllByParentIsNull();
+    }
+
+    @Override
+    public List<Category> getAllCategoryChildren(Long categoryId) {
+        return categoryRepository.findAllByParentId(categoryId);
+    }
+
+    private boolean wouldCreateCycle(Category current, Long targetId) {
+        Category node = current;
+        while (node != null) {
+            if (node.getId().equals(targetId)) {
+                return true;
+            }
+            node = node.getParent();
         }
-        category.getSubCategoryList().add(existSubcategory);
-        existSubcategory.setCategory(category);
-        return categoryRepository.save(category);
+        return false;
     }
 }
