@@ -8,6 +8,7 @@ import com.nhom7.ecommercebackend.request.category.CategoryDTO;
 import com.nhom7.ecommercebackend.service.CategoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @CacheEvict("categories")
     public Category creatCategory(CategoryDTO categoryDTO) throws DataNotFoundException {
         Category parent = null;
         if (categoryDTO.getParentId() != null) {
@@ -42,6 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @CacheEvict("categories")
     public void deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                  new DataNotFoundException("Category does not exist!"));
@@ -51,6 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
+    @CacheEvict("categories")
     public Category updateCategory(Long categoryId, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                 new DataNotFoundException("Category does not exist!"));
@@ -81,6 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable("categories")
     public List<Category> getAllCategoryByAdmin() {
         return categoryRepository.findAll();
     }
@@ -92,10 +97,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable("categories")
     public List<Category> getCategoryTree() {
         return categoryRepository.findAllByParentIsNull();
     }
 
+    @Cacheable(value = "categories", key = "#categoryId")
     @Override
     public List<Category> getAllCategoryChildren(Long categoryId) {
         return categoryRepository.findAllByParentId(categoryId);

@@ -101,7 +101,6 @@ public class CategoryController {
                 .data(
                         categoryService
                         .getAllCategoryByAdmin().stream()
-                        .filter(Category::isActive)
                         .map(CategoryTreeResponse::fromCategory)
                         .toList()
                 )

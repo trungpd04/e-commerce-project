@@ -64,12 +64,24 @@ public class FilterSpecification<Product> implements Specification<Product> {
             if (attributeValue.getKey().equals("category_id") && !attributeValue.getValue().contains("-")) {
 
                 if (productCategoryJoin == null) {
-                    productCategoryJoin = root.join("category", JoinType.INNER);
+                    productCategoryJoin = root.join("categories", JoinType.LEFT);
                 }
+
                 Predicate categoryPredicate = criteriaBuilder.equal(
                         productCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
                 );
-                predicates.add(categoryPredicate);
+
+                Predicate categoryActive = null;
+
+                if(!filter.getAllProduct()) {
+                    categoryActive = criteriaBuilder.equal(
+                            productCategoryJoin.get("active"), true
+                    );
+                    predicates.add(criteriaBuilder.and(categoryPredicate, categoryActive));
+                } else {
+                    predicates.add(categoryPredicate);
+                }
+
             }
 
             if (attributeValue.getKey().equals("price") && attributeValue.getValue().contains("-")) {
@@ -82,7 +94,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
 
             // For attribute-based filtering, apply conditional join only if needed
             if (!attributeValue.getKey().equals("is_hot")
-                    && !attributeValue.getKey().equals("subcategory_id")
                     && !attributeValue.getKey().equals("category_id")
                     && !attributeValue.getKey().equals("price")) {
 

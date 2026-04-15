@@ -146,17 +146,10 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> productPage;
         Specification<Product> specification = new FilterSpecification<>(filter);
 
-        specification = specification.and((root, query, criteriaBuilder) -> {
-               return criteriaBuilder.equal(root.get("active"), true);
-    }
+        specification = specification
+                .and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("active"), true)
         );
-//                .and((root, query, criteriaBuilder) -> {
-//            Join<Product, SubCategory> productSubCategoryJoin = null;
-//            Join<Product, Category> productCategoryJoin = null;
-//            productSubCategoryJoin = root.join("subcategory", JoinType.LEFT);
-//            productCategoryJoin = productSubCategoryJoin.join("category", JoinType.LEFT);
-//            return criteriaBuilder.equal(productCategoryJoin.get("active"), true);
-//        });
+
         productPage = productRepository.findAll(specification, pageRequest);
         return productPage.map(ProductResponse::fromProduct);
     }
@@ -175,7 +168,7 @@ public class ProductServiceImpl implements ProductService {
                 .thumbnail(productDTO.getThumbnail())
                 .price(productDTO.getPrice())
                 .active(true)
-                .categories(List.of(existedCategory))
+                .categories(List.of(existedCategory, existedCategory.getParent()))
                 .isHot(productDTO.isHot())
                 .quantity(productDTO.getQuantity())
                 .build();

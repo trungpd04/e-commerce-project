@@ -75,7 +75,7 @@ public class ProductController {
             pageRequest = PageRequest.of(page, size, sort);
         }
 
-        Filter filter = new Filter(attributeValue);
+        Filter filter = new Filter(attributeValue, false);
         Page<ProductResponse> productResponses = productService
                 .getAllActiveProductFilter(filter, pageRequest);
         int pageNo = productResponses.getNumber();
@@ -126,7 +126,7 @@ public class ProductController {
             pageRequest = PageRequest.of(page, size, sort);
         }
 
-        Filter filter = new Filter(attributeValue);
+        Filter filter = new Filter(attributeValue, true);
         Page<ProductResponse> productResponses = productService
                 .getAllProductFilter(filter, pageRequest);
         int pageNo = productResponses.getNumber();
