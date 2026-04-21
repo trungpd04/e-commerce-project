@@ -2,7 +2,6 @@ package com.nhom7.ecommercebackend.response.product;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhom7.ecommercebackend.model.Product;
-import com.nhom7.ecommercebackend.model.SubCategory;
 import lombok.Builder;
 import lombok.Data;
 
@@ -31,13 +30,9 @@ public class ProductResponse {
     private List<ProductAttributeValueResponse> attributes;
     @JsonProperty("category_name")
     private String category;
-    private List<String> subcategory;
 
     public static ProductResponse fromProduct(Product product) {
-        List<String> subcategory = new ArrayList<>();
-        for (SubCategory subCategory : product.getSubcategory()) {
-            subcategory.add(subCategory.getName());
-        }
+
         List<ProductAttributeValueResponse> attributeValues = new ArrayList<>();
         product.getAttributeValues().forEach(attributeValue -> {
             if(attributeValue.getProductAttribute().getName().contains("ram")
@@ -62,9 +57,7 @@ public class ProductResponse {
                 .quantity(product.getQuantity())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
-                .category(product.getSubcategory().getFirst().getCategory().getName())
                 .attributes(attributeValues)
-                .subcategory(subcategory)
                 .build();
     }
 }

@@ -1,13 +1,13 @@
 package com.nhom7.ecommercebackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "categories")
@@ -21,17 +21,16 @@ public class Category extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Column
     private boolean active;
 
-    @OneToMany(mappedBy = "category",
-            cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH},
-            orphanRemoval = false)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "parent")
+    private List<Category> childrenCategories;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonProperty("sub_categories")
-    private List<SubCategory> subCategoryList;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
 }

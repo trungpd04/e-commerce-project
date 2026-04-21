@@ -1,8 +1,22 @@
 package com.nhom7.ecommercebackend.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Digits;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,7 +42,7 @@ public class Product extends BaseEntity {
     @Column(name = "thumbnail", length = 300)
     private String thumbnail;
 
-    @Column(name = "description")
+    @Column(name = "description", length = 9999999)
     private String description;
 
     @Column(name = "active")
@@ -40,10 +54,7 @@ public class Product extends BaseEntity {
     @Column(name = "quantity")
     private Long quantity;
 
-    @ManyToMany
-    private List<SubCategory> subcategory;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductAttributeValue> attributeValues;
 
     @OneToMany(mappedBy = "product",
@@ -54,10 +65,12 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "id.product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Rating> ratings;
 
-    @PrePersist
-    private void setActive() {
-        setActive(true);
-    }
-
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "product_category",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private List<Category> categories;
 }
 

@@ -23,11 +23,15 @@ public class ProductDTO {
 
     @JsonProperty("is_hot")
     private boolean isHot;
+
     private String thumbnail;
 
-    private List<Long> subcategory;
+    private Long categoryId;
+
     private Long quantity;
+
     private boolean active;
+
     @JsonProperty("product_attributes")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ProductAttributeValueDTO> attributeValues;

@@ -1,8 +1,16 @@
 package com.nhom7.ecommercebackend.repository.filter;
 
-import com.nhom7.ecommercebackend.model.*;
-import jakarta.persistence.criteria.*;
-import jakarta.persistence.criteria.Order;
+import com.nhom7.ecommercebackend.model.Category;
+import com.nhom7.ecommercebackend.model.ProductAttribute;
+import com.nhom7.ecommercebackend.model.ProductAttributeValue;
+import com.nhom7.ecommercebackend.model.Rating;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -21,7 +29,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
         List<Predicate> predicates = new ArrayList<>();
 
 
-        Join<Product, SubCategory> productSubCategoryJoin = null;
         Join<Product, Category> productCategoryJoin = null;
         Join<Product, ProductAttributeValue> productAttributeValueJoin = null;
         Join<ProductAttributeValue, ProductAttribute> productAttributeValueProductAttributeJoin = null;
@@ -30,14 +37,9 @@ public class FilterSpecification<Product> implements Specification<Product> {
         if (filter.getAttributeValueMap().containsKey("search")) {
             String keyword = "%" + filter.getAttributeValueMap().get("search").toLowerCase().trim() + "%";
 
-            // Create joins only if needed
-            productSubCategoryJoin = root.join("subcategory", JoinType.LEFT);
-            productCategoryJoin = productSubCategoryJoin.join("category", JoinType.LEFT);
-
             Predicate keywordFilter = criteriaBuilder.or(
                     criteriaBuilder.like(root.get("name"), keyword),
                     criteriaBuilder.like(root.get("description"), keyword),
-                    criteriaBuilder.like(productSubCategoryJoin.get("name"), keyword),
                     criteriaBuilder.like(productCategoryJoin.get("name"), keyword)
             );
             predicates.add(keywordFilter);
@@ -58,36 +60,28 @@ public class FilterSpecification<Product> implements Specification<Product> {
                 Predicate hotPredicate = criteriaBuilder.equal(root.get("isHot"), isHot);
                 predicates.add(hotPredicate);
             }
-            if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
-                if (productSubCategoryJoin == null) {
-                    productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-                }
-                Predicate subcategoryPredicate = criteriaBuilder.equal(
-                        productSubCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
-                );
-                predicates.add(subcategoryPredicate);
-            }
-            if (attributeValue.getKey().equals("subcategory_id") && !attributeValue.getValue().contains("-")) {
-                if (productSubCategoryJoin == null) {
-                    productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-                }
-                Predicate subcategoryPredicate = criteriaBuilder.equal(
-                        productSubCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
-                );
-                predicates.add(subcategoryPredicate);
-            }
 
             if (attributeValue.getKey().equals("category_id") && !attributeValue.getValue().contains("-")) {
-                if (productSubCategoryJoin == null) {
-                    productSubCategoryJoin = root.join("subcategory", JoinType.INNER);
-                }
+
                 if (productCategoryJoin == null) {
-                    productCategoryJoin = productSubCategoryJoin.join("category", JoinType.INNER);
+                    productCategoryJoin = root.join("categories", JoinType.LEFT);
                 }
+
                 Predicate categoryPredicate = criteriaBuilder.equal(
                         productCategoryJoin.get("id"), Long.parseLong(attributeValue.getValue())
                 );
-                predicates.add(categoryPredicate);
+
+                Predicate categoryActive = null;
+
+                if(!filter.getAllProduct()) {
+                    categoryActive = criteriaBuilder.equal(
+                            productCategoryJoin.get("active"), true
+                    );
+                    predicates.add(criteriaBuilder.and(categoryPredicate, categoryActive));
+                } else {
+                    predicates.add(categoryPredicate);
+                }
+
             }
 
             if (attributeValue.getKey().equals("price") && attributeValue.getValue().contains("-")) {
@@ -100,7 +94,6 @@ public class FilterSpecification<Product> implements Specification<Product> {
 
             // For attribute-based filtering, apply conditional join only if needed
             if (!attributeValue.getKey().equals("is_hot")
-                    && !attributeValue.getKey().equals("subcategory_id")
                     && !attributeValue.getKey().equals("category_id")
                     && !attributeValue.getKey().equals("price")) {
 
